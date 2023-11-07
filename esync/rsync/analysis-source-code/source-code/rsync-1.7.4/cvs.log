@@ -1,0 +1,2457 @@
+
+****************************************
+Date:	Monday December 15, 1997 @ 13:38
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv18132
+
+Modified Files:
+	util.c 
+Log Message:
+added some more debug info to the "EOF in map_ptr" error message to
+try to make it easier to track down what is going wrong. 
+
+Jarom, can you let me know what output this gives?
+
+PS: the cvs commit messages for rsync are now sent to the rsync
+mailing list. This will allow everyone to see what changes are being
+made. 
+
+
+
+****************************************
+Date:	Monday December 15, 1997 @ 14:43
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv7138
+
+Modified Files:
+	flist.c main.c proto.h rsync.1 rsync.c util.c 
+Log Message:
+added a --relative (== -R) option. This is what Anthony Thyssen
+suggested on the list recently. See the man page entry for details but
+basically it changes the behaviour so that paths are not stripped,
+thus allowing you to specify a single rsync command to sync lots of
+directories/files while preserving the full path name of each file.
+
+also fixed a bug in the handling of umasks when both the source and
+destination machines are local. We need to reset the umask before the
+exec to ensure that the child gets a correct umask.
+
+
+
+
+****************************************
+Date:	Monday December 15, 1997 @ 16:27
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv1875
+
+Modified Files:
+	config.h.in configure configure.in rsync.h 
+Log Message:
+include sys/socket.h if possible (this should make rsync compile
+cleanly on SCO)
+
+
+
+****************************************
+Date:	Monday December 15, 1997 @ 17:29
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv10326
+
+Modified Files:
+	flist.c 
+Log Message:
+be a bit more friendly on systems that behave badly (consume lots of
+ram) when you realloc() up by a small amount at a time
+
+
+
+
+****************************************
+Date:	Monday December 15, 1997 @ 17:47
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv8711
+
+Modified Files:
+	main.c 
+Log Message:
+setup line buffering for debug messages
+
+
+
+
+
+
+****************************************
+Date:	Monday December 15, 1997 @ 17:57
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv8085
+
+Modified Files:
+	Makefile.in rsync.1 
+Log Message:
+patch from Jim Meyering <meyering@eng.ascend.com>
+
+- fixed typos in man page
+
+- use @CFLAGS@ in Makefile.in, allowing override on command line
+
+
+
+
+
+
+
+****************************************
+Date:	Monday December 15, 1997 @ 18:01
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv23652
+
+Modified Files:
+	flist.c 
+Log Message:
+bugfix from Kenji Miyake <kenjim@fix.co.jp> 
+
+this fixes a off by 1 error that could cause rsync to crash when used
+with --delete
+
+
+
+
+
+
+
+
+****************************************
+Date:	Monday December 15, 1997 @ 19:10
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv5569
+
+Modified Files:
+	rsync.1 
+Log Message:
+add a warning in the man page about using --delete with --relative. 
+
+
+
+****************************************
+Date:	Monday December 15, 1997 @ 21:04
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv28481
+
+Modified Files:
+	README io.c rsync.1 rsync.c 
+Log Message:
+several changes:
+
+- by popular demand I have changed the behaviour of the --delete
+option. It should now work as "expected" for even those people silly
+enough not to read the man page. rsync will now only look for
+candidate files/directories to delete in directories that are
+explicitly transferred from the sender
+
+- updated the README a bit
+
+- try to fail a bit more gracefully when rsync runs out of disk
+space. I don't think this issues is fully resolved yet
+
+
+
+
+
+****************************************
+Date:	Monday December 15, 1997 @ 21:35
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv540
+
+Modified Files:
+	exclude.c flist.c rsync.c 
+Log Message:
+some people are now using rsync as a public server, using various
+patches or wrappers. One problem with this is that rsync was not
+written with this in mind and wasn't very careful about possible stack
+overflows etc which could lead to security breaches. This wasn't a
+problem when run in the traditional way as any user that can run rsync
+can login anyway and cause much more damage that way.
+
+This patch attempts to close possible stack overflow problems. I've
+checked for all strcpy(), strcat(), sprintf() and memcpy()
+overflows. I would appreciate it if someone else with a devious mind
+could also go through the rsync source code and see if there are any
+other stack overflows possible. Let me know if you do.
+
+
+
+****************************************
+Date:	Monday December 15, 1997 @ 22:23
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv9735
+
+Modified Files:
+	main.c rsync.c 
+Log Message:
+process directory permissions and times ater hard links becuase the
+hard link processing can modify the directory times
+
+
+
+****************************************
+Date:	Monday December 15, 1997 @ 22:54
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv25686
+
+Modified Files:
+	README hlink.c 
+Log Message:
+- fixed an off by 1 bug in the hard link support
+
+- added a note about anonymous cvs access to the source code in the
+README
+
+
+
+****************************************
+Date:	Tuesday December 16, 1997 @ 8:48
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv7347
+
+Modified Files:
+	flist.c hlink.c io.c 
+Log Message:
+- fixed the "write exception" error. I was resetting got_select at the
+wrong point
+
+- fixed a seg fault error in flist.c
+
+- only print hlink debug messages when using -v
+
+
+
+
+****************************************
+Date:	Tuesday December 16, 1997 @ 9:11
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv9637
+
+Modified Files:
+	configure 
+Log Message:
+yeah, I know you shouldn't change configure directly ... a quick hack
+to add -O to the default CFLAGS line for non gcc systems. 
+
+
+
+
+****************************************
+Date:	Tuesday December 16, 1997 @ 9:14
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv21222
+
+Modified Files:
+	.cvsignore 
+Log Message:
+added .cvsignore to the .cvsignore file to prevent it from being
+distributed when I run the release script
+
+
+
+
+
+****************************************
+Date:	Tuesday December 16, 1997 @ 9:14
+Author:	tridge
+
+Update of /data/cvs/rsync/lib
+In directory samba:/tmp/cvs-serv4561
+
+Modified Files:
+	.cvsignore 
+Log Message:
+added .cvsignore to the .cvsignore file to prevent it from being
+distributed when I run the release script
+
+
+
+
+
+****************************************
+Date:	Tuesday December 16, 1997 @ 9:25
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv18353
+
+Modified Files:
+	io.c 
+Log Message:
+#if 0 the write exception code for the moment. I need to work out why
+it gets a successful write select on a fd followed by a EAGAIN
+write yet the fd is still OK. 
+
+
+
+****************************************
+Date:	Tuesday December 16, 1997 @ 17:59
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv28373
+
+Modified Files:
+	flist.c rsync.c 
+Log Message:
+fixed a nasty bug in the handling of the --delete option when there
+are duplicate file names in the list of files to be transferred
+(eg. the user specifies the same file twice).
+
+
+
+****************************************
+Date:	Tuesday December 16, 1997 @ 18:18
+Author:	tridge
+
+Update of /data/cvs/rsync/lib
+In directory samba:/tmp/cvs-serv13442
+
+Modified Files:
+	zlib.c 
+Log Message:
+Checker showed that zlib was using a element of its internal state
+structure without initialising it. Although it looks harmless I've
+added a bzero() to make absolutely sure that the code behaves
+consistently across platforms.
+
+
+
+****************************************
+Date:	Tuesday December 16, 1997 @ 18:20
+Author:	rsync-bu
+
+Update of /data/cvs/rsync
+In directory samba:/data/people/rsync-bugs/rsync
+
+Modified Files:
+	version.h 
+Log Message:
+preparing for release of 1.6.6
+
+
+****************************************
+Date:	Tuesday December 16, 1997 @ 20:29
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv25958
+
+Modified Files:
+	rsync.c 
+Log Message:
+fixed a bug in the handling of the new --relative option. The file was
+being opened twice but closed once. The process eventually died with
+an out of file descriptors error.
+
+
+
+****************************************
+Date:	Tuesday December 16, 1997 @ 22:40
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv7370
+
+Modified Files:
+	Makefile.in config.h.in configure configure.in flist.c main.c 
+Log Message:
+- check for setlinebuf() in autoconf. Apparently HPUX doesn't have it
+
+- use @exec_prefix@ and @prefix@ in more useful ways in Makefile.in
+
+
+
+
+****************************************
+Date:	Tuesday December 16, 1997 @ 23:09
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv18186
+
+Modified Files:
+	flist.c main.c rsync.c rsync.h 
+Log Message:
+handle things more grecefully when one machine supports hard links and
+the other doesn't or one machine supports soft links and the other
+doesn't.
+
+
+
+****************************************
+Date:	Wednesday December 17, 1997 @ 11:07
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv15387
+
+Modified Files:
+	README config.h.in configure configure.in flist.c hlink.c 
+	main.c proto.h rsync.1 rsync.c rsync.h 
+Log Message:
+
+A set of patches from Christopher Chan-Nui <channui@austin.ibm.com>.
+
+- better cleanup in case of error conditions. rsync now uses setpgrp()
+to put all processes in one group then on a fatal error condition
+(such as out of disk space) it will kill all members of this group
+
+- added -L (--copy-links) option. With this option symbolic links and
+treated like ordinary files.
+
+- added -W (--whole-file) option. This option disables the normal
+rsync incremental algorithm, making rsync send all data. Useful when
+both source and destination are local
+
+
+
+
+
+
+****************************************
+Date:	Wednesday December 17, 1997 @ 11:19
+Author:	rsync-bu
+
+Update of /data/cvs/rsync
+In directory samba:/data/people/rsync-bugs/rsync
+
+Modified Files:
+	version.h 
+Log Message:
+preparing for release of 1.6.7
+
+
+****************************************
+Date:	Thursday December 18, 1997 @ 11:13
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv2870
+
+Modified Files:
+	README 
+Log Message:
+added a new mirror site to the README
+
+
+
+****************************************
+Date:	Thursday December 18, 1997 @ 11:18
+Author:	tridge
+
+Update of /data/cvs/rsync/lib
+In directory samba:/tmp/cvs-serv15987
+
+Modified Files:
+	zlib.c zlib.h 
+Log Message:
+following a report of problems with Linux/alpha I've changed zlib.c to
+use uint32 instead of "long" in several places. Apparently this fixes
+things on the alpha. The strange thing is that my own tests on a
+OSF/alpha box and a 64 bit IRIX box showed no problems. I wonder what
+was actually going wrong? I'll email the zlib maintainers and let them
+know.
+
+
+
+
+
+****************************************
+Date:	Sunday December 28, 1997 @ 22:13
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv20021
+
+Modified Files:
+	flist.c hlink.c main.c rsync.1 
+Log Message:
+- fixed spelling errors in man page
+
+- fixed bug in hard link handling that could lead to spurious hard
+links. 
+
+- fixed bug in the string handling in flist.c
+
+
+
+
+****************************************
+Date:	Sunday December 28, 1997 @ 22:26
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv23890
+
+Modified Files:
+	proto.h rsync.c 
+Log Message:
+- added a debug message
+
+- rebuilt prototypes
+
+
+
+****************************************
+Date:	Sunday December 28, 1997 @ 22:28
+Author:	rsync-bu
+
+Update of /data/cvs/rsync
+In directory samba:/data/people/rsync-bugs/rsync
+
+Modified Files:
+	version.h 
+Log Message:
+preparing for release of 1.6.8
+
+
+****************************************
+Date:	Tuesday December 30, 1997 @ 10:54
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv24821
+
+Modified Files:
+	main.c 
+Log Message:
+fixed the --suffix option. It wasn't being propogated to the remote
+end in the server_options() function.
+
+
+
+
+****************************************
+Date:	Tuesday December 30, 1997 @ 17:37
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv17613
+
+Modified Files:
+	flist.c rsync.c 
+Log Message:
+buffer overflow patches from mhpower@mit.edu (Matt Power)
+
+
+
+****************************************
+Date:	Wednesday December 31, 1997 @ 16:39
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv184
+
+Modified Files:
+	rsync.c 
+Log Message:
+simplified the logic of whether to skip a file or not. The -c
+(always_checksum) option is probably now more useful.
+
+
+
+
+****************************************
+Date:	Wednesday December 31, 1997 @ 16:48
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv8654
+
+Modified Files:
+	io.c proto.h 
+Log Message:
+removed the read_write() call, it's not used anywhere 
+
+
+
+****************************************
+Date:	Thursday January 1, 1998 @ 15:53
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv18811
+
+Modified Files:
+	hlink.c 
+Log Message:
+
+yet *another* hard link bug. How many bugs can I have packed into those
+few lines of code??
+
+The fix is simple, as usual. Here is the patch in case anyone doesn't
+want to wait for the next release:
+
+--- hlink.c	1997/12/28 22:13:41	1.6
++++ hlink.c	1998/01/01 04:52:24
+@@ -80,7 +80,10 @@
+   while (low != high) {
+     int mid = (low+high)/2;
+     ret = hlink_compare(&hlink_list[mid],file);
+-    if (ret == 0) break;
++    if (ret == 0) {
++	    low = mid;
++	    break;
++    }
+     if (ret > 0) 
+       high=mid;
+     else
+
+
+
+****************************************
+Date:	Monday January 5, 1998 @ 23:30
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv12304
+
+Modified Files:
+	Makefile.in flist.c rsync.1 
+Log Message:
+cosmetic changes only
+
+- minor correction to --update docs
+
+- don't print "building file list" stuff when building a local file
+list for use in the --delete code.
+
+- remove some spaces at the end of lines in Makefile.in
+
+
+
+
+****************************************
+Date:	Tuesday January 6, 1998 @ 16:53
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv25095
+
+Modified Files:
+	flist.c rsync.c rsync.h 
+Log Message:
+
+fixed another --delete bug
+
+This one affected directory structures where one directory name is a
+prefix for another directory name, for example if you have 2 top-level
+directories called "drivers" and "drivers.new". In this case rsync
+would delete files that should not have been deleted.
+
+
+
+
+****************************************
+Date:	Tuesday January 13, 1998 @ 15:57
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv26963
+
+Modified Files:
+	Makefile.in flist.c main.c proto.h rsync.1 rsync.h version.h 
+Added Files:
+	uidlist.c 
+Log Message:
+
+This implements uid/gid mapping. A map of uids/gids and the
+corresponding user/group names is sent after the file list and is used
+by the destination system to map to the same names. This allows
+transfers between systems that have different uid/gid maps.
+
+The old behaviour can be selected using the --numeric-ids option.
+
+The special uid 0 and the special group id 0 are never mapped, they
+are always sent as numeric ids.
+
+
+
+
+****************************************
+Date:	Tuesday January 13, 1998 @ 17:16
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv4646
+
+Modified Files:
+	Makefile.in 
+Log Message:
+
+patch from pinard@iro.umontreal.ca to fix building the binaries in a
+different directory. 
+
+As he points out (in PR#353) the lack of a Makefile in lib/ makes
+things a little tricky. We should probably move to automake sometime,
+if only I could work out exactly how to use it :-)
+
+
+
+
+****************************************
+Date:	Tuesday January 13, 1998 @ 18:35
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv24039
+
+Modified Files:
+	main.c proto.h rsync.1 rsync.c util.c 
+Log Message:
+
+patch from Alberto Accomazzi <alberto@cfa0.harvard.edu> to implement
+a --temp-dir option. This allows the user to specify that temporary
+files are to be created in a different directory, which is useful when
+the target filesystem doesn't have enough room for 2 copies of a file.
+
+Alberto, I made some changes to the logic of your patch. Please let me
+know if you don't like the way I did it.
+
+
+
+****************************************
+Date:	Tuesday January 13, 1998 @ 18:43
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv5396
+
+Modified Files:
+	rsync.1 
+Log Message:
+
+modified the man page to make it clear how things differ when you add
+a / to the end of a source directory name.
+
+
+
+****************************************
+Date:	Tuesday January 13, 1998 @ 19:19
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv26821
+
+Modified Files:
+	rsync.c 
+Log Message:
+
+only set the file permissions and date on a file if the rename was
+successful. Otherwise a 2nd rsync after the error has been fixes might
+not update the file! Thanks to Brian Whittaker for pointing this out.
+
+Brian also sent some other useful patches in that I haven't integrated
+yet. 
+
+
+
+****************************************
+Date:	Tuesday January 13, 1998 @ 19:26
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv5557
+
+Modified Files:
+	rsync.1 rsync.c 
+Log Message:
+
+change --update to skip files if they have a date later than (as
+opposed to later than or equal to) the source file. This means that
+using -u will still allow permissions to be updated when the files
+have the same date. (problem pointed out by pinard@iro.umontreal.ca)
+
+
+
+****************************************
+Date:	Tuesday January 13, 1998 @ 19:30
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv6142
+
+Modified Files:
+	Makefile.in 
+Log Message:
+
+create the install directories if necessary. Requested by
+harald.meland@usit.uio.no
+
+
+
+****************************************
+Date:	Tuesday January 27, 1998 @ 17:51
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv7283
+
+Modified Files:
+	Makefile.in config.h.in configure configure.in rsync.h util.c 
+Log Message:
+
+patches for NEXTSTEP from hoffleit@mathi.uni-heidelberg.de. Not
+exactly the patches he sent, but they should have the same effect
+and be a little more generic.
+
+
+
+
+
+****************************************
+Date:	Tuesday February 24, 1998 @ 22:54
+Author:	tridge
+
+Update of /data/cvs/rsync/lib
+In directory samba:/tmp/cvs-serv6194
+
+Added Files:
+	compat.c 
+Log Message:
+compatibility functions now split into their own file
+
+
+
+****************************************
+Date:	Thursday March 19, 1998 @ 15:55
+Author:	paulus
+
+Update of /data/cvs/ppp/common
+In directory samba:/tmp/cvs-serv16906
+
+Modified Files:
+	zlib.c 
+Log Message:
+don't use structure assignment, gcc generates memcpy for it
+which isn't available in Solaris kernel
+
+
+
+****************************************
+Date:	Thursday March 19, 1998 @ 15:56
+Author:	paulus
+
+Update of /data/cvs/ppp/linux
+In directory samba:/tmp/cvs-serv20144
+
+Modified Files:
+	ppp-comp.h 
+Log Message:
+change number for deflate (old number is CI_DEFLATE_DRAFT)
+
+
+
+****************************************
+Date:	Thursday March 19, 1998 @ 16:02
+Author:	paulus
+
+Update of /data/cvs/ppp/linux
+In directory samba:/tmp/cvs-serv20843
+
+Modified Files:
+	ppp.c 
+Log Message:
+Fix a bug where we weren't allocating quite enough space for
+compressed packets.
+Import some minor rearrangements and fixes from the linux
+source tree.
+
+
+
+****************************************
+Date:	Thursday March 19, 1998 @ 16:03
+Author:	paulus
+
+Update of /data/cvs/ppp/linux
+In directory samba:/tmp/cvs-serv22630
+
+Modified Files:
+	ppp_deflate.c 
+Log Message:
+Fix the computation of the output size in the compressor.
+Support the proper deflate number as well as the draft number.
+
+
+
+****************************************
+Date:	Monday March 23, 1998 @ 14:45
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv20552
+
+Modified Files:
+	compat.c flist.c hlink.c proto.h rsync.1 rsync.c rsync.h 
+	uidlist.c 
+Log Message:
+
+a large change to make rsync much more memory efficient. This is done
+in 3 ways:
+
+1) the realloc is done on a list of pointers, not a list of structures
+2) only the basename of the file is now kept in the file struct an a
+   util function f_name() is now used to access the full name when
+   required.
+3) pointers to directory names are re-used
+
+hopefully I haven't broken anything. This will need lots of testing.
+
+
+
+****************************************
+Date:	Monday March 23, 1998 @ 15:14
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv20792
+
+Modified Files:
+	io.c proto.h util.c 
+Log Message:
+
+for systems with a broken select use u_sleep() to ensure the write
+process doesn't chew too much cpu time.
+
+
+
+****************************************
+Date:	Monday March 23, 1998 @ 15:44
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv9271
+
+Modified Files:
+	main.c proto.h rsync.c util.c 
+Log Message:
+
+- keep a list of pids and send them a SIGUSR1 for cleanup rather than
+using setpgrp()
+
+- adapt the block size for really large files to reduce the checksum
+  size and memory overheads
+
+
+
+****************************************
+Date:	Monday March 23, 1998 @ 15:46
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv22815
+
+Modified Files:
+	proto.h 
+Log Message:
+prototype update
+
+
+
+****************************************
+Date:	Monday March 23, 1998 @ 15:47
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv18202
+
+Modified Files:
+	mkproto.awk proto.h 
+Log Message:
+prototype update
+
+
+
+****************************************
+Date:	Monday March 23, 1998 @ 17:26
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv102
+
+Modified Files:
+	rsync.c 
+Log Message:
+don't adapt the block size to above half the chunk size
+
+
+
+
+****************************************
+Date:	Monday March 23, 1998 @ 18:11
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv22624
+
+Modified Files:
+	match.c rsync.c 
+Log Message:
+if the file changes during transfer then don't loop forever trying to
+update it
+
+
+
+
+
+
+
+****************************************
+Date:	Monday March 23, 1998 @ 18:25
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv2534
+
+Modified Files:
+	flist.c rsync.h 
+Log Message:
+
+save some more memory by only allocating the checksum when needed
+
+
+
+****************************************
+Date:	Monday March 23, 1998 @ 18:26
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv890
+
+Modified Files:
+	version.h 
+Log Message:
+label this version 1.7.0alpha
+
+
+
+****************************************
+Date:	Monday March 23, 1998 @ 19:49
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv8654
+
+Modified Files:
+	checksum.c flist.c match.c rsync.c rsync.h util.c 
+Log Message:
+started to add some 64 bit file offset support - not complete yet
+
+
+
+
+****************************************
+Date:	Monday March 23, 1998 @ 23:53
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/data/local/src/rsync
+
+Modified Files:
+	checksum.c exclude.c flist.c hlink.c io.c main.c match.c 
+	proto.h rsync.c rsync.h token.c 
+Log Message:
+finished 64 bit file offset support. Hopefully rsync can now transfer
+files up to 2^64 bytes in size. Now I just need to find enough disk
+space to test this :-)
+
+The 64 bit offset code only works if off_t is 64 bits (or bigger!) on
+both ends of the link. If one end tries to send a file greater than
+2^31 in size and the other end doesn't support it then rsync will
+abort.
+
+This commit also cleans up some static declarations so they are in a
+unitinitialised segment to save load time.
+
+
+
+****************************************
+Date:	Tuesday March 24, 1998 @ 0:25
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv19644
+
+Modified Files:
+	Makefile.in hlink.c proto.h rsync.c util.c 
+Added Files:
+	syscall.c 
+Log Message:
+
+added wrappers around all the system calls that can change what is on
+disk. The wrappers check for dry_run.
+
+
+
+****************************************
+Date:	Tuesday March 24, 1998 @ 1:46
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv21969
+
+Modified Files:
+	configure configure.in main.c match.c 
+Log Message:
+
+test for "long long" and %lld in configure. 
+
+
+
+****************************************
+Date:	Tuesday March 24, 1998 @ 10:47
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/data/local/src/rsync
+
+Modified Files:
+	config.h.in 
+Log Message:
+I forgot to put HAVE_LONGLONG in here
+
+
+
+****************************************
+Date:	Tuesday March 24, 1998 @ 17:39
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv17622
+
+Modified Files:
+	proto.h rsync.c syscall.c 
+Log Message:
+
+added chmod() and chown() to syscall.c
+
+
+
+
+****************************************
+Date:	Tuesday March 24, 1998 @ 17:42
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv20559
+
+Modified Files:
+	syscall.c 
+Log Message:
+
+check a few HAVE_* macros 
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 10:48
+Author:	paulus
+
+Update of /data/cvs/ppp/netbsd-1.1
+In directory samba:/tmp/cvs-serv13499
+
+Modified Files:
+	ppp-deflate.c 
+Log Message:
+Support old draft rfc deflate number.
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 10:48
+Author:	paulus
+
+Update of /data/cvs/ppp/netbsd-1.2
+In directory samba:/tmp/cvs-serv919
+
+Modified Files:
+	ppp-deflate.c 
+Log Message:
+support old draft rfc deflate number
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 10:52
+Author:	paulus
+
+Update of /data/cvs/ppp/modules
+In directory samba:/tmp/cvs-serv9186
+
+Modified Files:
+	deflate.c ppp.c ppp_ahdlc.c ppp_comp.c 
+Log Message:
+More debugging.
+Support old draft rfc deflate number.
+Allow mtu + hdrlen for compressor output packet size.
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 10:55
+Author:	paulus
+
+Update of /data/cvs/ppp/linux
+In directory samba:/tmp/cvs-serv24081
+
+Modified Files:
+	if_ppp.h ppp.c ppp_deflate.c 
+Log Message:
+Extra debug messages; fix the bug where we were losing
+decompression when setting the compressor.
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 10:57
+Author:	paulus
+
+Update of /data/cvs/ppp/chat
+In directory samba:/tmp/cvs-serv18606
+
+Modified Files:
+	Makefile.NeXT Makefile.sol2 chat.c 
+Log Message:
+Kludge to handle solaris 2.6 having usleep; NeXT mods from Steve Perkins
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 11:40
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv20560
+
+Modified Files:
+	compat.c main.c 
+Log Message:
+
+fixed the problem where you couldn't specify multiple remote
+filenames. The fix will need some testing.
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 12:25
+Author:	paulus
+
+Update of /data/cvs/ppp/pppd
+In directory samba:/tmp/cvs-serv3260
+
+Modified Files:
+	ccp.c ccp.h 
+Log Message:
+Support old draft rfc deflate number as well as new.
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 12:26
+Author:	paulus
+
+Update of /data/cvs/ppp/pppd
+In directory samba:/tmp/cvs-serv24217
+
+Modified Files:
+	auth.c 
+Log Message:
+PAM fixes from Al Longyear.
+Use script_setenv to pass peer name to scripts.
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 12:27
+Author:	paulus
+
+Update of /data/cvs/ppp/pppd
+In directory samba:/tmp/cvs-serv23972
+
+Modified Files:
+	Makefile.NeXT Makefile.aix4 Makefile.bsd Makefile.linux 
+	Makefile.netbsd-1.2 Makefile.osf Makefile.sol2 Makefile.sunos4 
+	Makefile.svr4 Makefile.ultrix 
+Log Message:
+include from ../include instead of ..
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 12:28
+Author:	paulus
+
+Update of /data/cvs/ppp/pppd
+In directory samba:/tmp/cvs-serv25558
+
+Modified Files:
+	main.c 
+Log Message:
+Pass useful info to scripts in environment variables.
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 12:29
+Author:	paulus
+
+Update of /data/cvs/ppp/pppd
+In directory samba:/tmp/cvs-serv7303
+
+Modified Files:
+	options.c 
+Log Message:
+nodeflatedraft option; small change to ms-dns and ms-wins options.
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 12:29
+Author:	paulus
+
+Update of /data/cvs/ppp/pppd
+In directory samba:/tmp/cvs-serv19856
+
+Modified Files:
+	patchlevel.h 
+Log Message:
+update
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 12:30
+Author:	paulus
+
+Update of /data/cvs/ppp/pppd
+In directory samba:/tmp/cvs-serv24787
+
+Modified Files:
+	pppd.h 
+Log Message:
+declare script_{un}setenv and get_host_seed
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 12:30
+Author:	paulus
+
+Update of /data/cvs/ppp/pppd
+In directory samba:/tmp/cvs-serv27405
+
+Added Files:
+	ppp.pam 
+Log Message:
+
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 12:59
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv24032
+
+Modified Files:
+	rsync.c 
+Log Message:
+
+don't show basedir in printed path (a aesthetic change only)
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 13:17
+Author:	paulus
+
+Update of /data/cvs/ppp/pppd
+In directory samba:/tmp/cvs-serv27955
+
+Modified Files:
+	sys-NeXT.c 
+Log Message:
+Mods from Steve Perkins; add get_host_seed
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 13:18
+Author:	paulus
+
+Update of /data/cvs/ppp/pppd
+In directory samba:/tmp/cvs-serv24247
+
+Modified Files:
+	sys-linux.c 
+Log Message:
+Mods from Al Longyear; added get_host_seed
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 13:19
+Author:	paulus
+
+Update of /data/cvs/ppp/pppd
+In directory samba:/tmp/cvs-serv23683
+
+Modified Files:
+	sys-aix4.c sys-bsd.c sys-osf.c sys-sunos4.c sys-svr4.c 
+Log Message:
+added get_host_seed
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 13:20
+Author:	paulus
+
+Update of /data/cvs/ppp/pppstats
+In directory samba:/tmp/cvs-serv14380
+
+Modified Files:
+	Makefile.NeXT 
+Log Message:
+mods from Steve Perkins; include from ../include not ..
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 13:21
+Author:	paulus
+
+Update of /data/cvs/ppp/pppstats
+In directory samba:/tmp/cvs-serv19687
+
+Modified Files:
+	Makefile.aix4 Makefile.bsd Makefile.linux Makefile.netbsd-1.2 
+	Makefile.osf Makefile.sol2 Makefile.sunos4 Makefile.svr4 
+	Makefile.ultrix 
+Log Message:
+include from ../include not ..
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 14:01
+Author:	paulus
+
+Update of /data/cvs/ppp/pppstats
+In directory samba:/tmp/cvs-serv7510
+
+Modified Files:
+	pppstats.c 
+Log Message:
+fix up includes
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 14:07
+Author:	paulus
+
+Update of /data/cvs/ppp/pppd
+In directory samba:/tmp/cvs-serv1776
+
+Modified Files:
+	magic.c 
+Log Message:
+use get_host_seed not gethostid
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 14:08
+Author:	paulus
+
+Update of /data/cvs/ppp/pppd
+In directory samba:/tmp/cvs-serv6371
+
+Modified Files:
+	chap_ms.c ipxcp.c 
+Log Message:
+minor cleanup
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 14:08
+Author:	paulus
+
+Update of /data/cvs/ppp/pppd
+In directory samba:/tmp/cvs-serv17578
+
+Modified Files:
+	ipcp.c 
+Log Message:
+set script env vars for local and remote IP numbers
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 14:09
+Author:	paulus
+
+Update of /data/cvs/ppp/pppd
+In directory samba:/tmp/cvs-serv19219
+
+Modified Files:
+	sys-ultrix.c 
+Log Message:
+added get_host_seed
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 14:09
+Author:	paulus
+
+Update of /data/cvs/ppp/sunos4
+In directory samba:/tmp/cvs-serv20691
+
+Modified Files:
+	Makefile 
+Log Message:
+include from ../include not ..
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 14:10
+Author:	paulus
+
+Update of /data/cvs/ppp/svr4
+In directory samba:/tmp/cvs-serv18693
+
+Modified Files:
+	Makefile.sol2 Makefile.svr4 
+Log Message:
+include from ../include not ..
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 14:11
+Author:	paulus
+
+Update of /data/cvs/ppp/ultrix
+In directory samba:/tmp/cvs-serv93
+
+Modified Files:
+	if_ppp.c ppp-deflate.c 
+Log Message:
+support old draft rfc deflate number
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 14:18
+Author:	paulus
+
+Update of /data/cvs/ppp/aix4
+In directory samba:/tmp/cvs-serv25782
+
+Modified Files:
+	Makefile 
+Log Message:
+include from ../include not ..
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 14:18
+Author:	paulus
+
+Update of /data/cvs/ppp/chat
+In directory samba:/tmp/cvs-serv26488
+
+Modified Files:
+	Makefile.NeXT 
+Log Message:
+moved libposix under NeXT
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 14:22
+Author:	paulus
+
+Update of /data/cvs/ppp/include
+In directory samba:/tmp/cvs-serv26589/include
+
+Log Message:
+Directory /data/cvs/ppp/include added to the repository
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 14:22
+Author:	paulus
+
+Update of /data/cvs/ppp/include/linux
+In directory samba:/tmp/cvs-serv21655/linux
+
+Log Message:
+Directory /data/cvs/ppp/include/linux added to the repository
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 14:22
+Author:	paulus
+
+Update of /data/cvs/ppp/include/net
+In directory samba:/tmp/cvs-serv21655/net
+
+Log Message:
+Directory /data/cvs/ppp/include/net added to the repository
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 14:33
+Author:	paulus
+
+Update of /data/cvs/ppp/include/net
+In directory samba:/tmp/cvs-serv25
+
+Modified Files:
+	ppp-comp.h 
+Log Message:
+Move deflate to the correct number (26);
+leave the old number defined as PPP_DEFLATE_DRAFT
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 14:34
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv2722
+
+Modified Files:
+	flist.c 
+Log Message:
+
+- fixed a bug wth the handling of duplicate names with the new fist
+  structures
+
+- send intermediate directories when using --relative to ensure the
+  permissions are set correctly
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 15:03
+Author:	paulus
+
+Update of /data/cvs/ppp/include/net
+In directory samba:/tmp/cvs-serv26471
+
+Modified Files:
+	if_ppp.h ppp_defs.h 
+Log Message:
+small mods for NeXT
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 15:03
+Author:	paulus
+
+Update of /data/cvs/ppp/netbsd-1.2
+In directory samba:/tmp/cvs-serv26320
+
+Modified Files:
+	if_ppp.c 
+Log Message:
+support old draft rfc deflate number
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 15:04
+Author:	paulus
+
+Update of /data/cvs/ppp/netbsd-1.1
+In directory samba:/tmp/cvs-serv1773
+
+Modified Files:
+	if_ppp.c 
+Log Message:
+support old draft rfc deflate number
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 15:05
+Author:	paulus
+
+Update of /data/cvs/ppp/freebsd-2.0
+In directory samba:/tmp/cvs-serv25578
+
+Modified Files:
+	if_ppp.c 
+Log Message:
+support old draft rfc deflate number
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 15:13
+Author:	tridge
+
+Update of /data/cvs/rsync/lib
+In directory samba:/tmp/cvs-serv3718
+
+Added Files:
+	dummy.in 
+Log Message:
+
+added this so the lib directory gets created when using VPATH 
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 15:14
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv9868
+
+Modified Files:
+	Makefile.in configure configure.in 
+Log Message:
+
+changes to make VPATH work correctly, thanks to patl@cag.lcs.mit.edu
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 17:05
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv28674
+
+Modified Files:
+	main.c rsync.1 rsync.c 
+Log Message:
+
+added a --force option.
+
+This options tells rsync to delete directories even if they are not
+empty. This applies to both the --delete option and to cases where
+rsync tries to copy a normal file but the destination contains a
+directory of the same name. Normally rsync will refuse to do a
+recursive directory deletion in such cases, by using --force the
+recursive deletion will be done.
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 22:08
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv10859
+
+Modified Files:
+	flist.c io.c main.c match.c rsync.c rsync.h 
+Log Message:
+
+- on systems (such as intel linux) where off_t is 32 bits but "long long"
+  is 64 bits use long long to get the totals right when transferring
+  more than 2^32 bytes of data.
+
+- use inline on flist_up if the compiler supports it
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 22:26
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv23604
+
+Modified Files:
+	configure configure.in proto.h 
+Log Message:
+
+- fixed a bug in the utimbuf test
+
+- rebuilt prototypes
+
+
+
+
+****************************************
+Date:	Wednesday March 25, 1998 @ 22:28
+Author:	tridge
+
+Update of /data/cvs/rsync/lib
+In directory samba:/tmp/cvs-serv10288
+
+Modified Files:
+	.cvsignore 
+Log Message:
+
+add the dummy file to .cvsignore
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 11:11
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv4774
+
+Modified Files:
+	flist.c 
+Log Message:
+
+when using -x to stop at filesystem boundaries, include the mount
+points but not their contents.
+
+I did this by calling stat() on the directory above the current
+directory and checking to see if it has the correct st_dev. Hopefully
+this will work for most systems.
+
+Note that the permissions and ownership on the mount point cannot be
+copied correctly as they are unavailable while the filesystem is
+mounted. Instead rsync will set the permissions and ownership to those
+of the root directory of the mounted filesystem (ie. the apparent
+permissions/ownership of the directory)
+
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 11:32
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv1585
+
+Modified Files:
+	rsync.c 
+Log Message:
+
+if rsync fails to update the group of a file but nothing else then
+don't report a problem. On most OSes non-root users can't change the
+group of a file.
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 13:40
+Author:	paulus
+
+Update of /data/cvs/ppp/NeXT/Examples
+In directory samba:/tmp/cvs-serv11067/Examples
+
+Log Message:
+Directory /data/cvs/ppp/NeXT/Examples added to the repository
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 13:47
+Author:	paulus
+
+Update of /data/cvs/ppp/NeXT/hppa
+In directory samba:/tmp/cvs-serv11337/hppa
+
+Log Message:
+Directory /data/cvs/ppp/NeXT/hppa added to the repository
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 13:50
+Author:	paulus
+
+Update of /data/cvs/ppp/NeXT/libposix
+In directory samba:/tmp/cvs-serv7631/libposix
+
+Log Message:
+Directory /data/cvs/ppp/NeXT/libposix added to the repository
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 13:51
+Author:	paulus
+
+Update of /data/cvs/ppp/NeXT
+In directory samba:/tmp/cvs-serv11657
+
+Modified Files:
+	INSTALL Makefile Makefile.top TODO.NeXT bsd-comp.c if_ppp.c 
+	if_pppvar.h inlines.h nbq.h ppp_tty.c 
+Added Files:
+	ChangeLog.rtf NeXT_Version.h 
+Removed Files:
+	NeXT_Version README.NeXT random.c random.h 
+Log Message:
+Update from Steve Perkins
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 13:52
+Author:	paulus
+
+Update of /data/cvs/ppp/NeXT/Examples
+In directory samba:/tmp/cvs-serv11657/Examples
+
+Added Files:
+	NXHosting_with_PPP Persistent_Connection README 
+	chap-secrets.example flow-control-hints ip-down.example 
+	ip-up.example options.example pap-secrets.example 
+	ppp_multiple_hosts.tar.gz pppdown pppkill.c pppup.annex 
+	pppup.direct pppup.portmaster pppup.remote pppup.zyxel 
+	redial.sh 
+Log Message:
+Update from Steve Perkins
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 13:52
+Author:	paulus
+
+Update of /data/cvs/ppp/NeXT/hppa
+In directory samba:/tmp/cvs-serv11657/hppa
+
+Added Files:
+	README.hppa 
+Log Message:
+Update from Steve Perkins
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 13:52
+Author:	paulus
+
+Update of /data/cvs/ppp/NeXT/libposix
+In directory samba:/tmp/cvs-serv11657/libposix
+
+Added Files:
+	Makefile libposix.c 
+Log Message:
+Update from Steve Perkins
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 13:54
+Author:	paulus
+
+Update of /data/cvs/ppp
+In directory samba:/tmp/cvs-serv20265
+
+Modified Files:
+	README.NeXT 
+Log Message:
+Update from Steve Perkins
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 13:54
+Author:	paulus
+
+Update of /data/cvs/ppp/NeXT/mach
+In directory samba:/tmp/cvs-serv15870/mach
+
+Log Message:
+Directory /data/cvs/ppp/NeXT/mach added to the repository
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 13:54
+Author:	paulus
+
+Update of /data/cvs/ppp/NeXT/mach
+In directory samba:/tmp/cvs-serv25260/mach
+
+Added Files:
+	features.h 
+Log Message:
+Update from Steve Perkins
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 13:55
+Author:	paulus
+
+Update of /data/cvs/ppp
+In directory samba:/tmp/cvs-serv16956
+
+Modified Files:
+	README.sol2 
+Log Message:
+Update for Solaris 2.6
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 14:01
+Author:	paulus
+
+Update of /data/cvs/ppp/scripts
+In directory samba:/tmp/cvs-serv12620/scripts
+
+Log Message:
+Directory /data/cvs/ppp/scripts added to the repository
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 14:02
+Author:	paulus
+
+Update of /data/cvs/ppp/scripts
+In directory samba:/tmp/cvs-serv4865
+
+Added Files:
+	README callback chat-callback ppp-off ppp-on ppp-on-dialer 
+	redialer secure-card 
+Log Message:
+
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 15:18
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv15740
+
+Modified Files:
+	exclude.c flist.c io.c main.c match.c rsync.1 rsync.c rsync.h 
+Log Message:
+
+- added an internal io_error flag. Whenever an io error occurs (such
+as not being able to open a directory) this flag is set and propogated
+to the other end. When this flag is set the --delete code is
+disabled. This prevents the problem that io or permission errors could
+cause files to be incorrectly deleted on the destination.
+
+- added a --timeout option. This allows you to set an IO timeout in
+seconds. If no io occurs in that time then rsync exits with a timeout
+error.
+
+- changed some FERROR fds to FINFO
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 15:43
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv24447
+
+Modified Files:
+	README rsync.1 
+Log Message:
+
+updated README and man page ready for the new release
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 15:46
+Author:	paulus
+
+Update of /data/cvs/ppp/pppd
+In directory samba:/tmp/cvs-serv13402
+
+Modified Files:
+	auth.c main.c options.c pppd.h 
+Log Message:
+Added updetach option.
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 15:53
+Author:	rsync-bu
+
+Update of /data/cvs/rsync
+In directory samba:/data/people/rsync-bugs/rsync
+
+Modified Files:
+	version.h 
+Log Message:
+preparing for release of 1.7.0
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 16:48
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv24686
+
+Modified Files:
+	flist.c 
+Log Message:
+
+added some debugging code
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 17:09
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv11486
+
+Modified Files:
+	io.c 
+Log Message:
+
+fixed a bug I introduced in the last big commit
+
+
+
+****************************************
+Date:	Thursday March 26, 1998 @ 17:11
+Author:	rsync-bu
+
+Update of /data/cvs/rsync
+In directory samba:/data/people/rsync-bugs/rsync
+
+Modified Files:
+	version.h 
+Log Message:
+preparing for release of 1.7.1
+
+
+****************************************
+Date:	Friday March 27, 1998 @ 14:04
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv16449
+
+Modified Files:
+	rsync.c 
+Log Message:
+
+Solaris uses EEXIST instead of ENOTEMPTY. 
+
+
+
+****************************************
+Date:	Friday March 27, 1998 @ 14:38
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv1738
+
+Modified Files:
+	configure configure.in 
+Log Message:
+
+don't need to test for SETPGRP any more as it is no longer used
+
+
+
+
+****************************************
+Date:	Wednesday April 1, 1998 @ 15:20
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv27903
+
+Modified Files:
+	exclude.c flist.c io.c proto.h uidlist.c util.c 
+Log Message:
+
+fixed a string termination bug in the uidlist handling code. I've also
+added a read_sbuf() routine that fixes this kind of bug generically to
+avoid similar problems in future.
+
+
+
+
+****************************************
+Date:	Sunday April 5, 1998 @ 14:34
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv5508
+
+Modified Files:
+	hlink.c version.h 
+Log Message:
+
+fixed a bug in the hlink code - it wasn't taking account of the new
+pointer list code for flist.
+
+
+
+****************************************
+Date:	Sunday April 5, 1998 @ 16:07
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv9750
+
+Modified Files:
+	main.c proto.h util.c 
+Log Message:
+
+in local->local mode don't use exec to start the "remote" rsync,
+instead just fork()
+
+
+
+
+****************************************
+Date:	Sunday April 5, 1998 @ 16:26
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv9597
+
+Modified Files:
+	main.c proto.h rsync.c syscall.c util.c 
+Log Message:
+
+a couple more system calls wrapped in syscall.c
+
+
+
+
+
+****************************************
+Date:	Sunday April 5, 1998 @ 16:43
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv11051
+
+Modified Files:
+	io.c 
+Log Message:
+
+handle sparse files more efficiently
+
+
+
+
+
+
+
+****************************************
+Date:	Sunday April 5, 1998 @ 16:43
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv11034
+
+Modified Files:
+	proto.h rsync.c rsync.h 
+Log Message:
+
+handle sparse files more efficiently
+
+
+
+
+
+
+
+****************************************
+Date:	Sunday April 5, 1998 @ 16:46
+Author:	rsync-bu
+
+Update of /data/cvs/rsync
+In directory samba:/data/people/rsync-bugs/rsync
+
+Modified Files:
+	version.h 
+Log Message:
+preparing for release of 1.7.2
+
+
+****************************************
+Date:	Thursday April 9, 1998 @ 10:38
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv4998
+
+Modified Files:
+	flist.c 
+Log Message:
+
+fixed a bug in handling the -c option and non-regular files. It hadn't
+turned up before because Linux had a bug in the handling of NULL
+pointers to read()/write() on pipes, so I never noticed the bug in my
+testing.
+
+I've also sent a patch to Linus.
+
+
+
+****************************************
+Date:	Monday April 13, 1998 @ 14:44
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv23368
+
+Modified Files:
+	main.c 
+Log Message:
+
+not quite so many decimal places in "speedup" :-)
+
+
+
+****************************************
+Date:	Monday April 13, 1998 @ 16:39
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv948
+
+Modified Files:
+	rsync.c 
+Log Message:
+
+fixed a bug in the handling of -R with --delete 
+
+I introduced this bug in the last version as a side effect of fixing
+the permissions on intermediate directories with -R. drat.
+
+
+
+****************************************
+Date:	Monday April 13, 1998 @ 17:00
+Author:	rsync-bu
+
+Update of /data/cvs/rsync
+In directory samba:/data/people/rsync-bugs/rsync
+
+Modified Files:
+	version.h 
+Log Message:
+preparing for release of 1.7.3
+
+
+****************************************
+Date:	Monday April 13, 1998 @ 17:26
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv5919
+
+Modified Files:
+	hlink.c match.c 
+Log Message:
+
+a few code cleanups 
+
+
+
+****************************************
+Date:	Friday April 17, 1998 @ 16:07
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv884
+
+Modified Files:
+	flist.c proto.h rsync.c rsync.h 
+Log Message:
+
+revamped the -delete code. The last few bugs with it revealed that it
+had a fundamental flaw in the way it detected duplicate deletion
+scanning (which is very important when -R is used). I now store
+inode/device numbers and use those to do the detection. This should be
+a much less fragile method.
+
+
+
+****************************************
+Date:	Friday April 17, 1998 @ 16:08
+Author:	tridge
+
+Update of /data/cvs/rsync
+In directory samba:/tmp/cvs-serv15916
+
+Added Files:
+	test.sh 
+Log Message:
+
+this is a little test script to test some of rsyncs features
+(contributed by Phil Hands)
+
+
+
+****************************************
+Date:	Friday April 17, 1998 @ 16:49
+Author:	rsync-bu
+
+Update of /data/cvs/rsync
+In directory samba:/data/people/rsync-bugs/rsync
+
+Modified Files:
+	version.h 
+Log Message:
+preparing for release of 1.7.4
+

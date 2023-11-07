@@ -1,0 +1,66 @@
+# Makefile for rsync. This is processed by configure to produce the final
+# Makefile
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+INSTALL_BIN=$(exec_prefix)/bin
+INSTALL_MAN=$(prefix)/man
+
+LIBS=@LIBS@
+CC=@CC@
+CFLAGS=@CFLAGS@
+
+INSTALLCMD=@INSTALL@
+
+VPATH=@srcdir@
+srcdir=@srcdir@
+SHELL=/bin/sh
+
+
+.SUFFIXES:
+.SUFFIXES: .c .o
+
+LIBOBJ=lib/getopt.o lib/fnmatch.o lib/zlib.o lib/compat.o
+OBJS1=rsync.o exclude.o util.o md4.o main.o checksum.o match.o syscall.o log.o
+OBJS2=options.o flist.o io.o compat.o hlink.o token.o uidlist.o socket.o 
+DAEMON_OBJ = params.o loadparm.o clientserver.o access.o connection.o authenticate.o
+OBJS=$(OBJS1) $(OBJS2) $(DAEMON_OBJ) $(LIBOBJ)
+
+# note that the -I. is needed to handle config.h when using VPATH
+.c.o:
+	$(CC) -I. -I$(srcdir) $(CFLAGS) -c $< -o $@
+
+all: rsync rsync.1 rsyncd.conf.5
+
+install: all
+	-mkdir -p ${INSTALL_BIN}
+	${INSTALLCMD} -m 755 rsync ${INSTALL_BIN}
+	-mkdir -p ${INSTALL_MAN}/man1
+	-mkdir -p ${INSTALL_MAN}/man5
+	${INSTALLCMD} -m 644 $(srcdir)/rsync.1 ${INSTALL_MAN}/man1
+	${INSTALLCMD} -m 644 $(srcdir)/rsyncd.conf.5 ${INSTALL_MAN}/man5
+
+rsync: $(OBJS)
+	$(CC) $(CFLAGS) -o rsync $(OBJS) $(LIBS)
+
+rsync.1: rsync.yo
+	yodl2man rsync.yo
+	mv rsync.man rsync.1
+
+rsyncd.conf.5: rsyncd.conf.yo
+	yodl2man rsyncd.conf.yo
+	mv rsyncd.conf.man rsyncd.conf.5
+
+proto:
+	cat *.c | awk -f mkproto.awk > proto.h
+
+clean:
+	rm -f *~ $(OBJS) rsync config.cache config.log config.status
+
+dist:
+	tar --exclude-from .ignore -czf dist.tar.gz .
+	-mkdir rsync-$(VERSION)
+	(cd rsync-$(VERSION) ; tar xzf ../dist.tar.gz)
+	tar -czf rsync-$(VERSION).tar.gz rsync-$(VERSION)
+	rm -f dist.tar.gz
+	echo rsync-$(VERSION) >> .cvsignore

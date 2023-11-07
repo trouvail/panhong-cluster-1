@@ -1,0 +1,66 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(byteorder.h)
+AC_CONFIG_HEADER(config.h)
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_SUBST(SHELL)
+
+AC_CHECK_PROG(HAVE_REMSH, remsh, 1, 0)
+AC_DEFINE_UNQUOTED(HAVE_REMSH, $HAVE_REMSH)
+
+AC_HEADER_DIRENT
+AC_HEADER_TIME
+AC_HEADER_SYS_WAIT
+AC_CHECK_HEADERS(sys/fcntl.h sys/select.h fcntl.h sys/time.h sys/unistd.h unistd.h utime.h grp.h)
+AC_CHECK_HEADERS(compat.h sys/param.h ctype.h sys/wait.h sys/ioctl.h)
+AC_CHECK_HEADERS(sys/filio.h string.h stdlib.h sys/socket.h sys/mode.h)
+
+AC_CHECK_SIZEOF(int)
+AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(short)
+
+AC_C_INLINE
+
+AC_TYPE_SIGNAL
+AC_TYPE_UID_T
+AC_TYPE_MODE_T
+AC_TYPE_OFF_T
+AC_TYPE_SIZE_T
+AC_TYPE_PID_T
+AC_STRUCT_ST_RDEV
+AC_CHECK_TYPE(ino_t,unsigned)
+
+echo $ac_n "checking for errno in errno.h... $ac_c"
+AC_TRY_COMPILE([#include <errno.h>],[int i = errno],
+echo yes; AC_DEFINE(HAVE_ERRNO_DECL),
+echo no)
+
+AC_FUNC_MEMCMP
+AC_FUNC_MMAP
+AC_FUNC_UTIME_NULL
+AC_CHECK_FUNCS(waitpid strtok pipe getcwd mkdir strdup strerror chown chmod mknod)
+AC_CHECK_FUNCS(fchmod fstat strchr bcopy bzero readlink link utime utimes)
+AC_CHECK_FUNCS(memmove getopt_long lchown setlinebuf)
+
+echo $ac_n "checking for working fnmatch... $ac_c"
+AC_TRY_RUN([#include <fnmatch.h>
+main() { exit(fnmatch("*.o", "x.o", 0) == 0? 0: 1); }],
+echo yes;AC_DEFINE(HAVE_FNMATCH), 
+echo no)
+
+echo $ac_n "checking for long long... $ac_c"
+AC_TRY_RUN([#include <stdio.h>
+main() { long long x = 1000000000000; char b[20]; sprintf(b,"%lld", x); exit(strcmp("1000000000000", b) == 0? 0: 1); }],
+echo yes;AC_DEFINE(HAVE_LONGLONG), 
+echo no)
+
+echo $ac_n "checking for utimbuf ... $ac_c"
+AC_TRY_COMPILE([#include <sys/types.h>
+#include <utime.h>],
+[struct utimbuf tbuf;  tbuf.actime = 0; tbuf.modtime = 1; return utime("foo.c",&tbuf);],
+echo yes;AC_DEFINE(HAVE_UTIMBUF), 
+echo no)
+
+AC_OUTPUT(Makefile lib/dummy)

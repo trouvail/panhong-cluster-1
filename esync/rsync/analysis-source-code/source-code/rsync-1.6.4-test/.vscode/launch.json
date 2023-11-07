@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/zhouyanlin/Desktop/研0/esync/rsync-1.6.4",
+      "program": "/Users/zhouyanlin/Desktop/研0/esync/rsync-1.6.4/build/Debug/outDebug"
+    }
+  ]
+}
