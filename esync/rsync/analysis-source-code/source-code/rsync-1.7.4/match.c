@@ -28,9 +28,10 @@ extern int remote_version;
 
 typedef unsigned short tag;
 
-#define TABLESIZE (1 << 16)
+#define TABLESIZE (1 << 16) // hash表大小为2^16
 #define NULL_TAG ((tag)-1)
 
+// 误报；目标命中；匹配成功；数据传输量
 static int false_alarms;
 static int tag_hits;
 static int matches;
@@ -47,55 +48,58 @@ struct target
 	int i;
 };
 
-static struct target *targets;
+static struct target *targets; // 包括一个tag和一个int的链表，个数根据传过来的块数来决定
 
-static tag *tag_table;
+static tag *tag_table; // tag的链表，据tag中的位置判断校验和从而找到是否存在此16位弱校验和并找到在targets中的位置，个数一定为2^16个
 
+// 获取16位弱校验和
 #define gettag2(s1, s2) (((s1) + (s2)) & 0xFFFF)
 #define gettag(sum) gettag2((sum) & 0xFFFF, (sum) >> 16)
 
+// 比较两个target的16位弱校验和
 static int compare_targets(struct target *t1, struct target *t2)
 {
 	return ((int)t1->t - (int)t2->t);
 }
 
+// 构建hash表
 static void build_hash_table(struct sum_struct *s)
 {
 	int i;
 
 	if (!tag_table)
-		tag_table = (tag *)malloc(sizeof(tag) * TABLESIZE);
+		tag_table = (tag *)malloc(sizeof(tag) * TABLESIZE); // 2^16个16位校验和
 
-	targets = (struct target *)malloc(sizeof(targets[0]) * s->count);
-	if (!tag_table || !targets)
+	targets = (struct target *)malloc(sizeof(targets[0]) * s->count); // 根据块数构建hash表
+	if (!tag_table || !targets) // 超过内存则报错
 		out_of_memory("build_hash_table");
 
-	for (i = 0; i < s->count; i++)
+	for (i = 0; i < s->count; i++) // i值为序号，t值为16位弱校验和
 	{
 		targets[i].i = i;
 		targets[i].t = gettag(s->sums[i].sum1);
 	}
 
-	qsort(targets, s->count, sizeof(targets[0]), (int (*)())compare_targets);
+	qsort(targets, s->count, sizeof(targets[0]), (int (*)())compare_targets); // 在targets中按照16位校验和大小排序
 
-	for (i = 0; i < TABLESIZE; i++)
+	for (i = 0; i < TABLESIZE; i++) // 初值全部为NULL_TAG
 		tag_table[i] = NULL_TAG;
 
-	for (i = s->count - 1; i >= 0; i--)
+	for (i = s->count - 1; i >= 0; i--) // 根据tag中的位置判断校验和从而找到是否存在此16位弱校验和并找到在targets中的位置
 	{
 		tag_table[targets[i].t] = i;
 	}
 }
 
-static off_t last_match;
+static off_t last_match; // 上一次匹配
 
 static void matched(int f, struct sum_struct *s, struct map_struct *buf,
 					off_t offset, int i)
 {
-	off_t n = offset - last_match;
+	off_t n = offset - last_match; // 本次匹配与上次匹配之间的距离
 	int j;
 
-	if (verbose > 2 && i >= 0)
+	if (verbose > 2 && i >= 0) // 根据verbose的多少（是通过在命令行的v的个数来决定的）来决定输出的日志信息
 		fprintf(FINFO, "match at %d last_match=%d j=%d len=%d n=%d\n",
 				(int)offset, (int)last_match, i, (int)s->sums[i].len, (int)n);
 
@@ -105,7 +109,7 @@ static void matched(int f, struct sum_struct *s, struct map_struct *buf,
 	if (n > 0)
 		write_flush(f);
 
-	if (i >= 0)
+	if (i >= 0) // 如果i是正数，那么则代表块索引
 		n += s->sums[i].len;
 
 	for (j = 0; j < n; j += CHUNK_SIZE)
@@ -120,7 +124,7 @@ static void matched(int f, struct sum_struct *s, struct map_struct *buf,
 		last_match = offset;
 }
 
-// in
+// in 检验报错
 
 static void hash_search(int f, struct sum_struct *s,
 						struct map_struct *buf, off_t len)
