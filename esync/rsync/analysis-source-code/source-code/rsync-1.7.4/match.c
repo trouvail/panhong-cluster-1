@@ -71,7 +71,7 @@ static void build_hash_table(struct sum_struct *s)
 		tag_table = (tag *)malloc(sizeof(tag) * TABLESIZE); // 2^16个16位校验和
 
 	targets = (struct target *)malloc(sizeof(targets[0]) * s->count); // 根据块数构建hash表
-	if (!tag_table || !targets) // 超过内存则报错
+	if (!tag_table || !targets)										  // 超过内存则报错
 		out_of_memory("build_hash_table");
 
 	for (i = 0; i < s->count; i++) // i值为序号，t值为16位弱校验和
@@ -103,22 +103,22 @@ static void matched(int f, struct sum_struct *s, struct map_struct *buf,
 		fprintf(FINFO, "match at %d last_match=%d j=%d len=%d n=%d\n",
 				(int)offset, (int)last_match, i, (int)s->sums[i].len, (int)n);
 
-	send_token(f, i, buf, last_match, n, i == -1 ? 0 : s->sums[i].len);
+	send_token(f, i, buf, last_match, n, i == -1 ? 0 : s->sums[i].len); // 将n数据发送
 	data_transfer += n;
 
 	if (n > 0)
-		write_flush(f);
+		write_flush(f); // 无效函数，啥也没干
 
 	if (i >= 0) // 如果i是正数，那么则代表块索引
 		n += s->sums[i].len;
 
-	for (j = 0; j < n; j += CHUNK_SIZE)
+	for (j = 0; j < n; j += CHUNK_SIZE) // 32 * 1024 z
 	{
-		int n1 = MIN(CHUNK_SIZE, n - j);
+		int n1 = MIN(CHUNK_SIZE, n - j); // 防止最后一块
 		sum_update(map_ptr(buf, last_match + j, n1), n1);
 	}
 
-	if (i >= 0)
+	if (i >= 0) // 更新last_match为本次的偏移
 		last_match = offset + s->sums[i].len;
 	else
 		last_match = offset;
@@ -141,7 +141,7 @@ static void hash_search(int f, struct sum_struct *s,
 
 	k = MIN(len, s->n); // 总长度和块长度中的较小值，防止只有一块
 
-	map = (signed char *)map_ptr(buf, 0, k);
+	map = (signed char *)map_ptr(buf, 0, k); // 为本地的
 
 	sum = get_checksum1((char *)map, k); // 弱校验和
 	s1 = sum & 0xFFFF;					 // 存储低16位
@@ -152,7 +152,6 @@ static void hash_search(int f, struct sum_struct *s,
 	offset = 0;
 
 	end = len + 1 - s->sums[s->count - 1].len; // 文件最后一个块的第一个字节
-
 
 	// int zhou = 1;
 
@@ -167,20 +166,20 @@ static void hash_search(int f, struct sum_struct *s,
 		tag t = gettag2(s1, s2); // 计算16位校验和
 		int done_csum2 = 0;		 // 是否计算强校验和
 
-		j = tag_table[t]; // 根据16位校验和获取相应的表项
+		j = tag_table[t]; // 根据16位校验和获取相应的表项位置
 		if (verbose > 4)
 			fprintf(FINFO, "offset=%d sum=%08x\n", (int)offset, sum);
 
 		if (j == NULL_TAG)
 		{
-			goto null_tag;
+			goto null_tag; // 匹配失败
 		}
 
 		sum = (s1 & 0xffff) | (s2 << 16); // 弱校验和
 		tag_hits++;						  // 命中一次
 		for (; j < s->count && targets[j].t == t; j++)
 		{
-			int i = targets[j].i; // hash表中的弱校验和
+			int i = targets[j].i; // hash表中的对应索引
 
 			if (sum != s->sums[i].sum1) // 弱校验和不相等
 				continue;
@@ -203,8 +202,11 @@ static void hash_search(int f, struct sum_struct *s,
 				continue;
 			}
 
+			// 强弱校验和都匹配成功
 			matched(f, s, buf, offset, i);
 			offset += s->sums[i].len - 1;
+
+			// 进行下一个块
 			k = MIN((len - offset), s->n);
 			map = (signed char *)map_ptr(buf, offset, k);
 			sum = get_checksum1((char *)map, k);
@@ -217,7 +219,7 @@ static void hash_search(int f, struct sum_struct *s,
 	null_tag:
 		/* Trim off the first byte from the checksum */
 		map = (signed char *)map_ptr(buf, offset, k + 1);
-		s1 -= map[0] + CHAR_OFFSET;
+		s1 -= map[0] + CHAR_OFFSET; // 0
 		s2 -= k * (map[0] + CHAR_OFFSET);
 
 		/* Add on the next byte (if there is one) to the checksum */
