@@ -53,6 +53,7 @@ struct map_struct *map_file(int fd, off_t len)
 	return ret;
 }
 
+/* slide the read window in the file */
 char *map_ptr(struct map_struct *map, off_t offset, int len)
 {
 	int nread = -2;
@@ -66,6 +67,7 @@ char *map_ptr(struct map_struct *map, off_t offset, int len)
 	if (len > (map->size - offset))
 		len = map->size - offset;
 
+	// map中的map是一个比p高级的字符串指针
 	if (offset >= map->p_offset &&
 		offset + len <= map->p_offset + map->p_len)
 	{

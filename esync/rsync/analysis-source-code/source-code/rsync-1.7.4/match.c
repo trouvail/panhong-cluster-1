@@ -239,6 +239,7 @@ static void hash_search(int f, struct sum_struct *s,
 	map_ptr(buf, len - 1, 1);
 }
 
+// s是远程端的，buf是本地的，调用构建表、hash查找、匹配
 void match_sums(int f, struct sum_struct *s, struct map_struct *buf, off_t len)
 {
 	char file_sum[MD4_SUM_LENGTH];
@@ -293,6 +294,7 @@ void match_sums(int f, struct sum_struct *s, struct map_struct *buf, off_t len)
 	total_data_transfer += data_transfer;
 }
 
+// 根据版本来报告信息
 void match_report(void)
 {
 	if (verbose <= 1)

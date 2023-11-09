@@ -391,10 +391,11 @@ int adapt_block_size(struct file_struct *file, int bsize)
   return ret;
 }
 
+// 接收端生成校验和（generate_sums）并写出到输出端(send_sums) i是文件索引，f_out是输出到的文件
 void recv_generator(char *fname, struct file_list *flist, int i, int f_out)
 {
   int fd;
-  struct stat st;
+  struct stat st; // 文件元信息：修改时间、所属组等等
   struct map_struct *buf;
   struct sum_struct *s;
   int statret;
@@ -403,8 +404,10 @@ void recv_generator(char *fname, struct file_list *flist, int i, int f_out)
   if (verbose > 2)
     fprintf(FINFO, "recv_generator(%s,%d)\n", fname, i);
 
+  // 把fname文件的元信息放进st这个buffer中
   statret = link_stat(fname, &st);
 
+  // 接下来根据st中的信息来判断怎么发送文件
   if (S_ISDIR(file->mode))
   {
     if (dry_run)
@@ -567,7 +570,9 @@ void recv_generator(char *fname, struct file_list *flist, int i, int f_out)
     return;
   }
 
+  // 判断怎么发送文件结束，开始准备发送文件
   /* open the file */
+  // 只读模式
   fd = open(fname, O_RDONLY);
 
   if (fd == -1)
@@ -578,7 +583,7 @@ void recv_generator(char *fname, struct file_list *flist, int i, int f_out)
   }
 
   if (st.st_size > 0)
-  {
+  { // 本地文件导入buf
     buf = map_file(fd, st.st_size);
   }
   else
@@ -595,6 +600,7 @@ void recv_generator(char *fname, struct file_list *flist, int i, int f_out)
     fprintf(FINFO, "sending sums for %d\n", i);
 
   write_int(f_out, i);
+  // 发送数据
   send_sums(s, f_out);
   write_flush(f_out);
 

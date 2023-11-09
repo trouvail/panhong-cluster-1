@@ -549,7 +549,7 @@ static void send_directory(int f,struct file_list *flist,char *dir)
 }
 
 
-
+// 发送文件列表
 struct file_list *send_file_list(int f,int argc,char *argv[])
 {
 	int i,l;

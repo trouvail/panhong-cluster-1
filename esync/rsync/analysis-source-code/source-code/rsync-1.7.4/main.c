@@ -449,6 +449,7 @@ void do_server_recv(int argc, char *argv[])
   exit_cleanup(status);
 }
 
+// 开启服务器的操作
 void start_server(int argc, char *argv[])
 {
   setup_protocol(STDOUT_FILENO, STDIN_FILENO);
