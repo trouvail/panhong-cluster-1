@@ -148,6 +148,7 @@ static void send_sums(struct sum_struct *s, int f_out)
 {
   int i;
 
+  // 将发送的块信息写入：多少块、块大小、最后一个块的大小、以及所有的块信息
   /* tell the other guy how many we are going to be doing and how many
      bytes there are in the last chunk */
   write_int(f_out, s ? s->count : 0);
@@ -157,7 +158,7 @@ static void send_sums(struct sum_struct *s, int f_out)
     for (i = 0; i < s->count; i++)
     {
       write_int(f_out, s->sums[i].sum1);
-      write_buf(f_out, s->sums[i].sum2, csum_length);
+      write_buf(f_out, s->sums[i].sum2, csum_length); // int csum_length = 2
     }
   write_flush(f_out);
 }
@@ -171,25 +172,25 @@ static struct sum_struct *generate_sums(struct map_struct *buf, off_t len, int n
 {
   int i;
   struct sum_struct *s;
-  int count;
-  int block_len = n;
-  int remainder = (len % block_len);
-  off_t offset = 0;
+  int count;                         // 块数
+  int block_len = n;                 // 每个块大小
+  int remainder = (len % block_len); // 最后剩余块
+  off_t offset = 0;                  // 文件偏移
 
   count = (len + (block_len - 1)) / block_len;
 
-  s = (struct sum_struct *)malloc(sizeof(*s));
+  s = (struct sum_struct *)malloc(sizeof(*s)); // 分配大小
   if (!s)
     out_of_memory("generate_sums");
 
   s->count = count;
   s->remainder = remainder;
   s->n = n;
-  s->flength = len;
+  s->flength = len; // file length 文件大小
 
   if (count == 0)
   {
-    s->sums = NULL;
+    s->sums = NULL; // 没有块信息
     return s;
   }
 
@@ -202,13 +203,14 @@ static struct sum_struct *generate_sums(struct map_struct *buf, off_t len, int n
     out_of_memory("generate_sums");
 
   for (i = 0; i < count; i++)
-  {
-    int n1 = MIN(len, n);
-    char *map = map_ptr(buf, offset, n1);
+  {                                       // 赋予每一块的块信息
+    int n1 = MIN(len, n);                 // 防止本次循环的块不到 700 bytes，即最后一个块
+    char *map = map_ptr(buf, offset, n1); // 从offset开始的n1长度的字符串
 
     s->sums[i].sum1 = get_checksum1(map, n1);
     get_checksum2(map, n1, s->sums[i].sum2);
 
+    // 每一块的块信息
     s->sums[i].offset = offset;
     s->sums[i].len = n1;
     s->sums[i].i = i;
@@ -384,7 +386,7 @@ int adapt_block_size(struct file_struct *file, int bsize)
 {
   int ret = file->length / (10000); /* rough heuristic 粗略启发式 */
   ret = ret & ~15;                  /* multiple of 16 16的倍数 */
-  if (ret < bsize) // #define BLOCK_SIZE 700
+  if (ret < bsize)                  // #define BLOCK_SIZE 700
     ret = bsize;
   if (ret > CHUNK_SIZE / 2) // #define CHUNK_SIZE (32 * 1024)
     ret = CHUNK_SIZE / 2;
