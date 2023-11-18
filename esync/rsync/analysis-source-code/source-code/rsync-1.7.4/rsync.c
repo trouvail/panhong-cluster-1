@@ -382,11 +382,11 @@ static int skip_file(char *fname,
 /* use a larger block size for really big files */
 int adapt_block_size(struct file_struct *file, int bsize)
 {
-  int ret = file->length / (10000); /* rough heuristic */
-  ret = ret & ~15;                  /* multiple of 16 */
-  if (ret < bsize)
+  int ret = file->length / (10000); /* rough heuristic 粗略启发式 */
+  ret = ret & ~15;                  /* multiple of 16 16的倍数 */
+  if (ret < bsize) // #define BLOCK_SIZE 700
     ret = bsize;
-  if (ret > CHUNK_SIZE / 2)
+  if (ret > CHUNK_SIZE / 2) // #define CHUNK_SIZE (32 * 1024)
     ret = CHUNK_SIZE / 2;
   return ret;
 }
@@ -594,7 +594,7 @@ void recv_generator(char *fname, struct file_list *flist, int i, int f_out)
   if (verbose > 3)
     fprintf(FINFO, "gen mapped %s of size %d\n", fname, (int)st.st_size);
 
-  s = generate_sums(buf, st.st_size, adapt_block_size(file, block_size));
+  s = generate_sums(buf, st.st_size, adapt_block_size(file, block_size)); // block_size为700
 
   if (verbose > 2)
     fprintf(FINFO, "sending sums for %d\n", i);

@@ -1,7 +1,13 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": []
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/zhouyanlin/Desktop/senior_year/毕业论文/esync/esync/rsync/analysis-source-code/source-code/rsync-1.7.4",
+      "program": "/Users/zhouyanlin/Desktop/senior_year/毕业论文/esync/esync/rsync/analysis-source-code/source-code/rsync-1.7.4/build/Debug/outDebug"
+    }
+  ]
 }
