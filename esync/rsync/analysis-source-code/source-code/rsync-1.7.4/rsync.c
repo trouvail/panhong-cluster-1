@@ -845,6 +845,7 @@ void sig_int(void)
   exit_cleanup(1);
 }
 
+// f_in是收到的文件，f_gen是即将生成的文件
 int recv_files(int f_in, struct file_list *flist, char *local_name, int f_gen)
 {
   int fd1, fd2;
@@ -985,7 +986,7 @@ int recv_files(int f_in, struct file_list *flist, char *local_name, int f_gen)
       printf("%s\n", fname);
 
     /* recv file data */
-    recv_ok = receive_data(f_in, buf, fd2, fname);
+    recv_ok = receive_data(f_in, buf, fd2, fname); // 处理获得的数据
 
     if (buf)
       unmap_file(buf);
@@ -1066,7 +1067,8 @@ int recv_files(int f_in, struct file_list *flist, char *local_name, int f_gen)
     do_hard_links(flist);
 
   /* now we need to fix any directory permissions that were
-     modified during the transfer */
+     modified during the transfer
+     现在，我们需要修复在传输过程中修改的任意目录权限 */
   for (i = 0; i < flist->count; i++)
   {
     struct file_struct *file = flist->files[i];
