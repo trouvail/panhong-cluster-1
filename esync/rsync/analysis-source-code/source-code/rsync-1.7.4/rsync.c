@@ -614,7 +614,7 @@ void recv_generator(char *fname, struct file_list *flist, int i, int f_out)
   free_sums(s);
 }
 
-static int receive_data(int f_in, struct map_struct *buf, int fd, char *fname)
+static int receive_data(int f_in, struct map_struct *buf, int fd, char *fname) // (f_in, buf, fd2, fname) 获得的数据、本地、写入的文件、本地文件
 {
   int i, n, remainder, len, count;
   off_t offset = 0;
@@ -632,21 +632,21 @@ static int receive_data(int f_in, struct map_struct *buf, int fd, char *fname)
 
   for (i = recv_token(f_in, &data); i != 0; i = recv_token(f_in, &data))
   {
-    if (i > 0)
+    if (i > 0) // 好像代表这个长度的数据
     {
       if (verbose > 3)
         fprintf(FINFO, "data recv %d at %d\n", i, (int)offset);
 
       sum_update(data, i);
 
-      if (fd != -1 && write_file(fd, data, i) != i)
+      if (fd != -1 && write_file(fd, data, i) != i) // 写入数据
       {
         fprintf(FERROR, "write failed on %s : %s\n", fname, strerror(errno));
         exit_cleanup(1);
       }
       offset += i;
     }
-    else
+    else // 好像代表着索引
     {
       i = -(i + 1);
       offset2 = i * n;
@@ -663,7 +663,7 @@ static int receive_data(int f_in, struct map_struct *buf, int fd, char *fname)
       see_token(map, len);
       sum_update(map, len);
 
-      if (fd != -1 && write_file(fd, map, len) != len)
+      if (fd != -1 && write_file(fd, map, len) != len) // 写入数据
       {
         fprintf(FERROR, "write failed on %s : %s\n", fname, strerror(errno));
         exit_cleanup(1);
@@ -845,12 +845,13 @@ void sig_int(void)
   exit_cleanup(1);
 }
 
+// f_in是收到的文件，f_gen是即将生成的文件
 int recv_files(int f_in, struct file_list *flist, char *local_name, int f_gen)
 {
   int fd1, fd2;
-  struct stat st;
+  struct stat st; // 文件元信息：修改时间、所属组等等
   char *fname;
-  char fnametmp[MAXPATHLEN];
+  char fnametmp[MAXPATHLEN]; // 文件全名包括路径
   struct map_struct *buf;
   int i;
   struct file_struct *file;
@@ -862,13 +863,14 @@ int recv_files(int f_in, struct file_list *flist, char *local_name, int f_gen)
     fprintf(FINFO, "recv_files(%d) starting\n", flist->count);
   }
 
-  if (recurse && delete_mode && !local_name && flist->count > 0)
+  if (recurse && delete_mode && !local_name && flist->count > 0) // 递归下的删除模式？
   {
     delete_files(flist);
   }
 
   while (1)
   {
+    // 跟send_files接到i = -1一样
     i = read_int(f_in);
     if (i == -1)
     {
@@ -891,7 +893,7 @@ int recv_files(int f_in, struct file_list *flist, char *local_name, int f_gen)
     if (local_name)
       fname = local_name;
 
-    if (dry_run)
+    if (dry_run) // dry_run?试运行
     {
       if (!am_server && verbose)
         printf("%s\n", fname);
@@ -902,7 +904,7 @@ int recv_files(int f_in, struct file_list *flist, char *local_name, int f_gen)
       fprintf(FINFO, "recv_files(%s)\n", fname);
 
     /* open the file */
-    fd1 = open(fname, O_RDONLY);
+    fd1 = open(fname, O_RDONLY); // fd1是本地文件
 
     if (fd1 != -1 && fstat(fd1, &st) != 0)
     {
@@ -912,7 +914,7 @@ int recv_files(int f_in, struct file_list *flist, char *local_name, int f_gen)
       continue;
     }
 
-    if (fd1 != -1 && !S_ISREG(st.st_mode))
+    if (fd1 != -1 && !S_ISREG(st.st_mode)) // 模式为一般/常规文件
     {
       fprintf(FERROR, "%s : not a regular file (recv_files)\n", fname);
       receive_data(f_in, NULL, -1, NULL);
@@ -922,7 +924,7 @@ int recv_files(int f_in, struct file_list *flist, char *local_name, int f_gen)
 
     if (fd1 != -1 && st.st_size > 0)
     {
-      buf = map_file(fd1, st.st_size);
+      buf = map_file(fd1, st.st_size); // 本地文件结构
       if (verbose > 2)
         fprintf(FINFO, "recv mapped %s of size %d\n", fname, (int)st.st_size);
     }
@@ -932,7 +934,7 @@ int recv_files(int f_in, struct file_list *flist, char *local_name, int f_gen)
     }
 
     /* open tmp file */
-    if (strlen(fname) > (MAXPATHLEN - 8))
+    if (strlen(fname) > (MAXPATHLEN - 8)) // 文件名字太长 差不多1024了
     {
       fprintf(FERROR, "filename too long\n");
       if (buf)
@@ -943,18 +945,18 @@ int recv_files(int f_in, struct file_list *flist, char *local_name, int f_gen)
     if (tmpdir)
     {
       char *f;
-      f = strrchr(fname, '/');
+      f = strrchr(fname, '/'); // 在参数 str 所指向的字符串中搜索最后一次出现字符 c（一个无符号字符）的位置，本处即为获取文件名，去除目录
       if (f == NULL)
         f = fname;
       else
         f++;
-      sprintf(fnametmp, "%s/%s.XXXXXX", tmpdir, f);
+      sprintf(fnametmp, "%s/%s.XXXXXX", tmpdir, f); // 写入文件路径
     }
     else
     {
       sprintf(fnametmp, "%s.XXXXXX", fname);
     }
-    if (NULL == do_mktemp(fnametmp))
+    if (NULL == do_mktemp(fnametmp)) // 创建本地目录失败
     {
       fprintf(FERROR, "mktemp %s failed\n", fnametmp);
       receive_data(f_in, buf, -1, NULL);
@@ -963,7 +965,7 @@ int recv_files(int f_in, struct file_list *flist, char *local_name, int f_gen)
       close(fd1);
       continue;
     }
-    fd2 = do_open(fnametmp, O_WRONLY | O_CREAT | O_EXCL, file->mode);
+    fd2 = do_open(fnametmp, O_WRONLY | O_CREAT | O_EXCL, file->mode); // 可写可创建可执行
     if (fd2 == -1 && relative_paths && errno == ENOENT &&
         create_directory_path(fnametmp) == 0)
     {
@@ -985,8 +987,9 @@ int recv_files(int f_in, struct file_list *flist, char *local_name, int f_gen)
       printf("%s\n", fname);
 
     /* recv file data */
-    recv_ok = receive_data(f_in, buf, fd2, fname);
+    recv_ok = receive_data(f_in, buf, fd2, fname); // 处理获得的数据
 
+    // 释放资源
     if (buf)
       unmap_file(buf);
     if (fd1 != -1)
@@ -998,16 +1001,16 @@ int recv_files(int f_in, struct file_list *flist, char *local_name, int f_gen)
     if (verbose > 2)
       fprintf(FINFO, "renaming %s to %s\n", fnametmp, fname);
 
-    if (make_backups)
+    if (make_backups) // 进行备份
     {
       char fnamebak[MAXPATHLEN];
-      if (strlen(fname) + strlen(backup_suffix) > (MAXPATHLEN - 1))
+      if (strlen(fname) + strlen(backup_suffix) > (MAXPATHLEN - 1)) // #define BACKUP_SUFFIX "~"
       {
         fprintf(FERROR, "backup filename too long\n");
         continue;
       }
-      sprintf(fnamebak, "%s%s", fname, backup_suffix);
-      if (do_rename(fname, fnamebak) != 0 && errno != ENOENT)
+      sprintf(fnamebak, "%s%s", fname, backup_suffix); // 根文件吗？
+      if (do_rename(fname, fnamebak) != 0 && errno != ENOENT) // 重命名
       {
         fprintf(FERROR, "rename %s %s : %s\n", fname, fnamebak, strerror(errno));
         continue;
@@ -1019,7 +1022,7 @@ int recv_files(int f_in, struct file_list *flist, char *local_name, int f_gen)
     {
       if (errno == EXDEV)
       {
-        /* rename failed on cross-filesystem link.
+        /* rename failed on cross-filesystem link. 跨文件系统命名失败
      Copy the file instead. */
         if (copy_file(fnametmp, fname, file->mode))
         {
@@ -1062,17 +1065,18 @@ int recv_files(int f_in, struct file_list *flist, char *local_name, int f_gen)
     }
   }
 
-  if (preserve_hard_links)
+  if (preserve_hard_links) // 保留硬链接
     do_hard_links(flist);
 
   /* now we need to fix any directory permissions that were
-     modified during the transfer */
+     modified during the transfer
+     现在，我们需要修复在传输过程中修改的任意目录权限 */
   for (i = 0; i < flist->count; i++)
   {
     struct file_struct *file = flist->files[i];
-    if (!file->basename || !S_ISDIR(file->mode))
+    if (!file->basename || !S_ISDIR(file->mode)) // 不是文件基名或者不是一个文件
       continue;
-    recv_generator(f_name(file), flist, i, -1);
+    recv_generator(f_name(file), flist, i, -1); // -1的意思？感觉一般不会进到这里，所以应该不用管
   }
 
   if (verbose > 2)
