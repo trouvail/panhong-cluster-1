@@ -219,7 +219,7 @@ struct file_struct
   unsigned flags;
   time_t modtime;
   off_t length;
-  mode_t mode;
+  mode_t mode; // unsigned int
   ino_t inode;
   dev_t dev;
   dev_t rdev;

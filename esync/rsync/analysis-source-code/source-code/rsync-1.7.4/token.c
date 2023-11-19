@@ -405,7 +405,7 @@ void send_token(int f, int token, struct map_struct *buf, int offset,
 }
 
 /*
- * receive a token or buffer from the other end. If the reurn value is >0 then
+ * receive a token or buffer from the other end. If the return value is >0 then
  * it is a data buffer of that length, and *data will point at the data.
  * if the return value is -i then it represents token i-1
  * if the return value is 0 then the end has been reached
