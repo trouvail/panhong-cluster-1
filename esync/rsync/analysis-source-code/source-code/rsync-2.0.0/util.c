@@ -276,7 +276,7 @@ int set_blocking(int fd, int set)
 #endif
 #endif
 
-  if((val = fcntl(fd, F_GETFL, 0)) == -1)
+  if((val = fcntl(fd, F_GETFL, 0)) == -1) // 获得／设置文件描述符标记
 	return -1;
   if(set) /* Turn blocking on - ie. clear nonblock flag */
 	val &= ~FLAG_TO_SET;

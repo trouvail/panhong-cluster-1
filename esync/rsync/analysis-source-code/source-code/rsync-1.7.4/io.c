@@ -405,7 +405,7 @@ void write_int(int f, int x)
 {
 	int ret;
 	char b[4];
-	SIVAL(b, 0, x);
+	SIVAL(b, 0, x); // 在b指针后0位置赋值4个x值
 	if ((ret = writefd(f, b, 4)) != 4)
 	{
 		fprintf(FERROR, "write_int failed : %s\n",
