@@ -148,6 +148,7 @@ static void send_sums(struct sum_struct *s, int f_out)
 {
   int i;
 
+  // 将发送的块信息写入：多少块、块大小、最后一个块的大小、以及所有的块信息
   /* tell the other guy how many we are going to be doing and how many
      bytes there are in the last chunk */
   write_int(f_out, s ? s->count : 0);
@@ -157,7 +158,7 @@ static void send_sums(struct sum_struct *s, int f_out)
     for (i = 0; i < s->count; i++)
     {
       write_int(f_out, s->sums[i].sum1);
-      write_buf(f_out, s->sums[i].sum2, csum_length);
+      write_buf(f_out, s->sums[i].sum2, csum_length); // int csum_length = 2
     }
   write_flush(f_out);
 }
@@ -171,25 +172,25 @@ static struct sum_struct *generate_sums(struct map_struct *buf, off_t len, int n
 {
   int i;
   struct sum_struct *s;
-  int count;
-  int block_len = n;
-  int remainder = (len % block_len);
-  off_t offset = 0;
+  int count;                         // 块数
+  int block_len = n;                 // 每个块大小
+  int remainder = (len % block_len); // 最后剩余块
+  off_t offset = 0;                  // 文件偏移
 
   count = (len + (block_len - 1)) / block_len;
 
-  s = (struct sum_struct *)malloc(sizeof(*s));
+  s = (struct sum_struct *)malloc(sizeof(*s)); // 分配大小
   if (!s)
     out_of_memory("generate_sums");
 
   s->count = count;
   s->remainder = remainder;
   s->n = n;
-  s->flength = len;
+  s->flength = len; // file length 文件大小
 
   if (count == 0)
   {
-    s->sums = NULL;
+    s->sums = NULL; // 没有块信息
     return s;
   }
 
@@ -202,13 +203,14 @@ static struct sum_struct *generate_sums(struct map_struct *buf, off_t len, int n
     out_of_memory("generate_sums");
 
   for (i = 0; i < count; i++)
-  {
-    int n1 = MIN(len, n);
-    char *map = map_ptr(buf, offset, n1);
+  {                                       // 赋予每一块的块信息
+    int n1 = MIN(len, n);                 // 防止本次循环的块不到 700 bytes，即最后一个块
+    char *map = map_ptr(buf, offset, n1); // 从offset开始的n1长度的字符串
 
     s->sums[i].sum1 = get_checksum1(map, n1);
     get_checksum2(map, n1, s->sums[i].sum2);
 
+    // 每一块的块信息
     s->sums[i].offset = offset;
     s->sums[i].len = n1;
     s->sums[i].i = i;
@@ -233,10 +235,11 @@ static struct sum_struct *receive_sums(int f)
   int i;
   off_t offset = 0;
 
-  s = (struct sum_struct *)malloc(sizeof(*s));
+  s = (struct sum_struct *)malloc(sizeof(*s)); // 分配空间
   if (!s)
     out_of_memory("receive_sums");
 
+  // 读出先导信息
   s->count = read_int(f);
   s->n = read_int(f);
   s->remainder = read_int(f);
@@ -246,14 +249,14 @@ static struct sum_struct *receive_sums(int f)
     fprintf(FINFO, "count=%d n=%d rem=%d\n",
             s->count, s->n, s->remainder);
 
-  if (s->count == 0)
+  if (s->count == 0) // 没有块信息
     return (s);
 
-  s->sums = (struct sum_buf *)malloc(sizeof(s->sums[0]) * s->count);
+  s->sums = (struct sum_buf *)malloc(sizeof(s->sums[0]) * s->count); // 开始读每一个块的信息
   if (!s->sums)
     out_of_memory("receive_sums");
 
-  for (i = 0; i < s->count; i++)
+  for (i = 0; i < s->count; i++) // 对每一个块都进行赋值
   {
     s->sums[i].sum1 = read_int(f);
     read_buf(f, s->sums[i].sum2, csum_length);
@@ -261,7 +264,7 @@ static struct sum_struct *receive_sums(int f)
     s->sums[i].offset = offset;
     s->sums[i].i = i;
 
-    if (i == s->count - 1 && s->remainder != 0)
+    if (i == s->count - 1 && s->remainder != 0) // 最后一个块
     {
       s->sums[i].len = s->remainder;
     }
@@ -276,7 +279,7 @@ static struct sum_struct *receive_sums(int f)
               i, s->sums[i].len, (int)s->sums[i].offset, s->sums[i].sum1);
   }
 
-  s->flength = offset;
+  s->flength = offset; // 总文件长度
 
   return s;
 }
@@ -382,11 +385,11 @@ static int skip_file(char *fname,
 /* use a larger block size for really big files */
 int adapt_block_size(struct file_struct *file, int bsize)
 {
-  int ret = file->length / (10000); /* rough heuristic */
-  ret = ret & ~15;                  /* multiple of 16 */
-  if (ret < bsize)
+  int ret = file->length / (10000); /* rough heuristic 粗略启发式 */
+  ret = ret & ~15;                  /* multiple of 16 16的倍数 将后四位变成4个0 ———— 妙哉妙哉 */
+  if (ret < bsize)                  // #define BLOCK_SIZE 700
     ret = bsize;
-  if (ret > CHUNK_SIZE / 2)
+  if (ret > CHUNK_SIZE / 2) // #define CHUNK_SIZE (32 * 1024)
     ret = CHUNK_SIZE / 2;
   return ret;
 }
@@ -594,7 +597,7 @@ void recv_generator(char *fname, struct file_list *flist, int i, int f_out)
   if (verbose > 3)
     fprintf(FINFO, "gen mapped %s of size %d\n", fname, (int)st.st_size);
 
-  s = generate_sums(buf, st.st_size, adapt_block_size(file, block_size));
+  s = generate_sums(buf, st.st_size, adapt_block_size(file, block_size)); // block_size为700
 
   if (verbose > 2)
     fprintf(FINFO, "sending sums for %d\n", i);
@@ -1078,13 +1081,14 @@ int recv_files(int f_in, struct file_list *flist, char *local_name, int f_gen)
   return 0;
 }
 
+// f_in都是相对本地接收的文件，f_out都是相对本地将要写道输出端的文件
 void send_files(struct file_list *flist, int f_out, int f_in)
 {
   int fd;
   struct sum_struct *s;
-  struct map_struct *buf;
-  struct stat st;
-  char fname[MAXPATHLEN];
+  struct map_struct *buf; // 本地的文件信息
+  struct stat st;         // 文件元信息：修改时间、所属组等等
+  char fname[MAXPATHLEN]; // #define MAXPATHLEN 1024
   int i;
   struct file_struct *file;
   int phase = 0;
@@ -1093,8 +1097,9 @@ void send_files(struct file_list *flist, int f_out, int f_in)
   if (verbose > 2)
     fprintf(FINFO, "send_files starting\n");
 
-  setup_nonblocking(f_in, f_out);
+  setup_nonblocking(f_in, f_out); // 设置非阻塞态
 
+  // 逐一的匹配文件
   while (1)
   {
     i = read_int(f_in);
@@ -1103,7 +1108,7 @@ void send_files(struct file_list *flist, int f_out, int f_in)
       if (phase == 0 && remote_version >= 13)
       {
         phase++;
-        csum_length = SUM_LENGTH;
+        csum_length = SUM_LENGTH; // #define SUM_LENGTH 16
         write_int(f_out, -1);
         write_flush(f_out);
         if (verbose > 2)
@@ -1113,12 +1118,13 @@ void send_files(struct file_list *flist, int f_out, int f_in)
       break;
     }
 
-    file = flist->files[i];
+    file = flist->files[i]; // 第i个文件 flist是输入的
 
-    fname[0] = 0;
+    // 获取文件名字 -- start
+    fname[0] = 0; // 文件路径
     if (file->basedir)
     {
-      strncpy(fname, file->basedir, MAXPATHLEN - 1);
+      strncpy(fname, file->basedir, MAXPATHLEN - 1); // 最多复制n
       fname[MAXPATHLEN - 1] = 0;
       if (strlen(fname) == MAXPATHLEN - 1)
       {
@@ -1127,10 +1133,11 @@ void send_files(struct file_list *flist, int f_out, int f_in)
                 fname);
         return;
       }
-      strcat(fname, "/");
+      strcat(fname, "/"); // 追加字符串
       offset = strlen(file->basedir) + 1;
     }
     strncat(fname, f_name(file), MAXPATHLEN - strlen(fname));
+    // 获取文件名字 -- end
 
     if (verbose > 2)
       fprintf(FINFO, "send_files(%d,%s)\n", i, fname);
@@ -1143,8 +1150,8 @@ void send_files(struct file_list *flist, int f_out, int f_in)
       continue;
     }
 
-    s = receive_sums(f_in);
-    if (!s)
+    s = receive_sums(f_in); // 接收缓冲区的校验和
+    if (!s)                 // 接收校验和失败
     {
       io_error = 1;
       fprintf(FERROR, "receive_sums failed\n");
@@ -1152,7 +1159,7 @@ void send_files(struct file_list *flist, int f_out, int f_in)
     }
 
     fd = open(fname, O_RDONLY);
-    if (fd == -1)
+    if (fd == -1) // 打开本地文件失败
     {
       io_error = 1;
       fprintf(FERROR, "send_files failed to open %s: %s\n",
@@ -1162,7 +1169,7 @@ void send_files(struct file_list *flist, int f_out, int f_in)
     }
 
     /* map the local file */
-    if (fstat(fd, &st) != 0)
+    if (fstat(fd, &st) != 0) // 赋予状态失败
     {
       io_error = 1;
       fprintf(FERROR, "fstat failed : %s\n", strerror(errno));
@@ -1173,7 +1180,7 @@ void send_files(struct file_list *flist, int f_out, int f_in)
 
     if (st.st_size > 0)
     {
-      buf = map_file(fd, st.st_size);
+      buf = map_file(fd, st.st_size); // 导入到本地的文件结构buf（map_struct）中
     }
     else
     {
@@ -1184,6 +1191,7 @@ void send_files(struct file_list *flist, int f_out, int f_in)
       fprintf(FINFO, "send_files mapped %s of size %d\n",
               fname, (int)st.st_size);
 
+    // 将接收到的块信息写入到输出文件中
     write_int(f_out, i);
 
     write_int(f_out, s->count);
@@ -1194,16 +1202,19 @@ void send_files(struct file_list *flist, int f_out, int f_in)
       fprintf(FINFO, "calling match_sums %s\n", fname);
 
     if (!am_server && verbose)
-      printf("%s\n", fname + offset);
+      printf("%s\n", fname + offset); // 输出文件名字不带路径
 
+    // 进行hash查找匹配
     match_sums(f_out, s, buf, st.st_size);
     write_flush(f_out);
 
+    // 善后处理 -- start
     if (buf)
       unmap_file(buf);
     close(fd);
 
     free_sums(s);
+    // 善后处理 -- end
 
     if (verbose > 2)
       fprintf(FINFO, "sender finished %s\n", fname);

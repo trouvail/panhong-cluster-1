@@ -33,6 +33,7 @@
 #define PVAL(buf,pos) ((unsigned)CVAL(buf,pos))
 #define SCVAL(buf,pos,val) (CVAL(buf,pos) = (val))
 
+// 对齐操作
 
 #if CAREFUL_ALIGNMENT
 #define SVAL(buf,pos) (PVAL(buf,pos)|PVAL(buf,(pos)+1)<<8)
