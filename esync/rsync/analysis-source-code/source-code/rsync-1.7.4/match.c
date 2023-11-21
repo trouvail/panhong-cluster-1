@@ -217,6 +217,7 @@ static void hash_search(int f, struct sum_struct *s,
 		}
 
 	null_tag:
+		// 原始的Adler-32算法，s1代表着a(k, l)，s2代表着b(k, l)，滚动计算校验和
 		/* Trim off the first byte from the checksum */
 		map = (signed char *)map_ptr(buf, offset, k + 1);
 		s1 -= map[0] + CHAR_OFFSET; // 0

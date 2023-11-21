@@ -36,6 +36,7 @@ uint32 get_checksum1(char *buf1, int len)
   uint32 s1, s2;
   signed char *buf = (signed char *)buf1;
 
+  // 原始的Adler-32算法，s1代表着a(k, l)，s2代表着b(k, l)，滚动计算校验和
   s1 = s2 = 0;
   for (i = 0; i < (len - 4); i += 4)
   {
