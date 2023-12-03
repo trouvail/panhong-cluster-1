@@ -1,5 +1,8 @@
 #include <iostream>
 #include <ctime>
+#include <sstream>
+#include <vector>
+#include <string>
 #include <NTL/ZZ.h>
 
 using namespace std;
@@ -20,6 +23,7 @@ ZZ L_function(const ZZ &x, const ZZ &n) { return (x - 1) / n; }
  *  lamdaInverse = lambda^{-1} mod n^2
  *  k : 大质数的位数
  */
+// 通过k来生成关于密钥的所有其他参数，k是大素数的长度
 void keyGeneration(ZZ &p, ZZ &q, ZZ &n, ZZ &phi, ZZ &lambda, ZZ &g, ZZ &lambdaInverse, ZZ &r, const long &k)
 {
     GenPrime(p, k), GenPrime(q, k);
@@ -83,19 +87,84 @@ void validHomomorphic(const ZZ &c1, const ZZ &c2, const ZZ &n, const ZZ &lambda,
 
 int main()
 {
+    // k是大素数的长度
     long k = 1024;
+    // 关于密钥的各个参数，r是随机数
     ZZ p, q, n, phi, lambda, lambdaInverse, g, r;
+    // 分别是明文、密文、解密密文后的明文
     ZZ m1, m2, c1, c2, m1_d, m2_d;
+    string s_ming1, s_ming2, s_mi1, s_mi2;
+
+    // 进行str和int的转换
+    int mid;
+
     keyGeneration(p, q, n, phi, lambda, g, lambdaInverse, r, k);
+
     cout << "请输入需要加密的明文消息1 : ";
-    cin >> m1;
-    cout << "请输入需要加密的明文消息2 : ";
-    cin >> m2;
-    c1 = encrypt(m1, n, g, r);
-    c2 = encrypt(m2, n, g, r);
-    m1_d = decrypt(c1, n, lambda, lambdaInverse);
-    m2_d = decrypt(c2, n, lambda, lambdaInverse);
-    validHomomorphic(c1, c2, n, lambda, lambdaInverse);
+    // cin >> m1;
+    // cin >> s_ming1;
+    // 防止遇到空格就停止
+    getline(cin, s_ming1, '\n');
+
+    vector<int> asciiSequence;
+    vector<int> cryAsciiSequence; // 加密后的ascii序列
+
+    for (char c : s_ming1)
+    {
+        asciiSequence.push_back(static_cast<int>(c));
+    }
+
+    // 输出ASCII码序列
+    cout << "ASCII sequence: ";
+    for (int asciiValue : asciiSequence)
+    {
+        cout << asciiValue << " ";
+    }
+    cout << endl;
+
+    for (int asciiValue : asciiSequence)
+    {
+        cryAsciiSequence.push_back(static_cast<int>(encrypt(ZZ(asciiValue), n, g, r)));
+    }
+
+    // 输出加密后的ASCII码序列
+    cout << "ASCII sequence: ";
+    for (int cryAsciiValue : cryAsciiSequence)
+    {
+        cout << cryAsciiValue << " ";
+    }
+    cout << endl;
+
+    for (int cryAsciiValue : cryAsciiSequence)
+    {
+        s_mi1 += static_cast<char>(cryAsciiValue);
+    }
+
+    // istringstream ss1(s_ming1);
+    // ss1 >> mid;
+    // mid = stoi(s_ming1);
+    cout << s_mi1 << endl;
+    // mid = (int) s_ming1; 不能直接强制类型转换
+    // cout << mid << endl;
+    // m1 = ZZ(mid);
+    // cout << m1 << endl;
+
+    // c1 = encrypt(m1, n, g, r);
+
+    // cout << "请输入需要加密的明文消息2 : ";
+    // // cin >> m2;
+    // // cin >> s_ming2;
+    // getline(cin, s_ming2, '\n');
+
+    // istringstream ss2(s_ming2);
+    // ss2 >> mid;
+    // m2 = ZZ(mid);
+    // cout << m2;
+
+    // c2 = encrypt(m2, n, g, r);
+    // m1_d = decrypt(c1, n, lambda, lambdaInverse);
+    // m2_d = decrypt(c2, n, lambda, lambdaInverse);
+    // validHomomorphic(c1, c2, n, lambda, lambdaInverse);
     return 0;
 }
 // g++ -g -O2 -std=c++11 -pthread -march=native zyltest-ntl.cpp -o zyltest-ntl -lntl -lgmp -lm
