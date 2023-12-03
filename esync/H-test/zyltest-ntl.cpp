@@ -52,14 +52,14 @@ ZZ encrypt(const ZZ &m, const ZZ &n, const ZZ &g, const ZZ &r)
 {
     // 生成一个随机数 r < n
     // r = RandomBnd(n);
-    ZZ c = (PowerMod(g, m, n * n) * PowerMod(r, n, n * n) ) % (n * n);
+    ZZ c = (PowerMod(g, m, n * n) * PowerMod(r, n, n * n)) % (n * n);
     cout << "----------------------------------------------------加密阶段-----------------------------------------------------" << endl;
     cout << "密文输出 : " << c << endl;
     return c;
 }
 
 /* 解密函数
- * 
+ *
  * 参数：
  *  c：密文
  *  (lambda，lamdaInverse)： 私钥

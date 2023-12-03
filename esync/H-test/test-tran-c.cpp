@@ -5,11 +5,13 @@
 
 using namespace std;
 
-void encryptFile(const string& sourcePath, const string& destinationPath, const PaillierPublicKey& publicKey) {
+void encryptFile(const string &sourcePath, const string &destinationPath, const PaillierPublicKey &publicKey)
+{
     ifstream sourceFile(sourcePath, ios::binary);
     ofstream destinationFile(destinationPath, ios::binary);
 
-    if (!sourceFile.is_open() || !destinationFile.is_open()) {
+    if (!sourceFile.is_open() || !destinationFile.is_open())
+    {
         cerr << "Error opening files." << endl;
         return;
     }
@@ -24,18 +26,21 @@ void encryptFile(const string& sourcePath, const string& destinationPath, const 
     Paillier::encrypt(encryptedData, publicKey, plaintext);
 
     // Write the encrypted data to the destination file
-    for (const mpz_class& encryptedValue : encryptedData) {
+    for (const mpz_class &encryptedValue : encryptedData)
+    {
         destinationFile << encryptedValue << " ";
     }
 
     cout << "Encryption completed." << endl;
 }
 
-void decryptFile(const string& sourcePath, const string& destinationPath, const PaillierPrivateKey& privateKey) {
+void decryptFile(const string &sourcePath, const string &destinationPath, const PaillierPrivateKey &privateKey)
+{
     ifstream sourceFile(sourcePath);
     ofstream destinationFile(destinationPath);
 
-    if (!sourceFile.is_open() || !destinationFile.is_open()) {
+    if (!sourceFile.is_open() || !destinationFile.is_open())
+    {
         cerr << "Error opening files." << endl;
         return;
     }
@@ -43,7 +48,8 @@ void decryptFile(const string& sourcePath, const string& destinationPath, const 
     // Read the encrypted data from the source file
     vector<mpz_class> encryptedData;
     mpz_class encryptedValue;
-    while (sourceFile >> encryptedValue) {
+    while (sourceFile >> encryptedValue)
+    {
         encryptedData.push_back(encryptedValue);
     }
 
@@ -57,8 +63,10 @@ void decryptFile(const string& sourcePath, const string& destinationPath, const 
     cout << "Decryption completed." << endl;
 }
 
-int main(int argc, char* argv[]) {
-    if (argc != 4) {
+int main(int argc, char *argv[])
+{
+    if (argc != 4)
+    {
         cerr << "Usage: " << argv[0] << " <sourceFilePath> <destinationFilePath> <encrypt/decrypt>" << endl;
         return 1;
     }
@@ -67,7 +75,8 @@ int main(int argc, char* argv[]) {
     string destinationPath = argv[2];
     string operation = argv[3];
 
-    if (operation != "encrypt" && operation != "decrypt") {
+    if (operation != "encrypt" && operation != "decrypt")
+    {
         cerr << "Invalid operation. Use 'encrypt' or 'decrypt'." << endl;
         return 1;
     }
@@ -76,11 +85,17 @@ int main(int argc, char* argv[]) {
     PaillierKeyPair keyPair;
     keyPair.GenerateKeys();
 
-    if (operation == "encrypt") {
+    if (operation == "encrypt")
+    {
         encryptFile(sourcePath, destinationPath, keyPair.publicKey);
-    } else {
+    }
+    else
+    {
         decryptFile(sourcePath, destinationPath, keyPair.privateKey);
     }
 
     return 0;
 }
+
+// g++ test-tran-c.cpp -o test-tran-c
+// ./test-tran-c <sourceFilePath> <destinationFilePath> <encrypt/decrypt>

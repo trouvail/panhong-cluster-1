@@ -4,8 +4,10 @@
 #include <algorithm>
 using namespace std;
 
-int main(int argc, char* argv[]) {
-    if (argc != 3) {
+int main(int argc, char *argv[])
+{
+    if (argc != 3)
+    {
         cerr << "用法: " << argv[0] << " <源文件路径> <目标文件路径>" << endl;
         return 1;
     }
@@ -15,29 +17,30 @@ int main(int argc, char* argv[]) {
 
     // 打开源文件
     ifstream sourceFile(sourceFilePath);
-    if (!sourceFile.is_open()) {
+    if (!sourceFile.is_open())
+    {
         cerr << "无法打开源文件：" << sourceFilePath << endl;
         return 1;
     }
 
     // 打开目标文件，如果不存在则创建
     ofstream targetFile(targetFilePath);
-    if (!targetFile.is_open()) {
+    if (!targetFile.is_open())
+    {
         cerr << "无法创建或打开目标文件：" << targetFilePath << endl;
         return 1;
     }
 
     // 读取源文件
     string sourceContent((istreambuf_iterator<char>(sourceFile)),
-                               istreambuf_iterator<char>());
+                         istreambuf_iterator<char>());
 
     cout << sourceContent << endl;
 
-
-
     // 逐行复制源文件内容到目标文件
     string line;
-    while (getline(sourceFile, line)) {
+    while (getline(sourceFile, line))
+    {
         targetFile << line << endl;
     }
 
@@ -49,10 +52,6 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
-
-
-
-
 
 // 检测差异 ------------------------------ start
 // #include <iostream>
@@ -170,14 +169,6 @@ int main(int argc, char* argv[]) {
 //     return 0;
 // }
 // 检测差异 ------------------------------ end
-
-
-
-
-
-
-
-
 
 // g++ test-tran.cpp -o test-tran
 // ./test-tran tsrc tdst

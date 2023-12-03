@@ -14,7 +14,7 @@ int main()
         printf("[-] b = ");
         gmp_scanf("%Zd", b);
         mpz_add(c, a, b);
-        gmp_printf("[+] c = %Zd\n",c);
+        gmp_printf("[+] c = %Zd\n", c);
         return 0;
 }
 // g++ zyltest-gmp.cpp -o zyltest-gmp -lgmp -lm
