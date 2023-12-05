@@ -18,6 +18,27 @@ ZZ L_function(const ZZ &x, const ZZ &n) { return (x - 1) / n; }
 // 全局的时间参数，用于计算时间
 clock_t cStart, cEnd, dStart, dEnd;
 
+// 解决十进制的string和数字的转换
+ZZ stringToNumber1(string str)
+{
+    ZZ number = conv<ZZ>(str[0] - '0');
+    // cout << str[0] << endl;
+    // cout << number << endl;
+    long len = str.length();
+    for (long i = 1; i < len; i++)
+    {
+        // if(i < 10)
+        // {
+        //     cout << number << endl;
+        // }
+
+        number *= 10;
+        number += conv<ZZ>(str[i] - '0');
+    }
+
+    return number;
+}
+
 /* 密钥生成函数
  *
  * 参数：
@@ -33,8 +54,13 @@ clock_t cStart, cEnd, dStart, dEnd;
 // 通过k来生成关于密钥的所有其他参数，k是大素数的长度
 void keyGeneration(ZZ &p, ZZ &q, ZZ &n, ZZ &phi, ZZ &lambda, ZZ &g, ZZ &lambdaInverse, ZZ &r, const long &k)
 {
-    // 每一次的生成的公私钥都不同，所以得保存
-    GenPrime(p, k), GenPrime(q, k);
+    // 每一次的生成的公私钥都不同，所以得保存，GenPrime函数之后再用
+    // GenPrime(p, k), GenPrime(q, k);
+    // 这里k设置的是1024，但不知道为什么只有309个长度的数字
+    p = stringToNumber1("172916032594892104202328012805748658124126220505003705357818567865239905661273119163077151267921662119868305671122623303373930307029182705770499476262823042705596209157003302173864778194065324628427628543763350561157038910053709859745483036339435202739737652123275607117498453027089284870828921971924624103919");
+    q = stringToNumber1("152059830120724466312413151239373716494265469926444607572239839036763723387522597634279172796637995283872847793316294553744491733071744494128185653798230231953646502174401055232952695238820004891151829456106320438574056965876992373158985645887090027877374610199215213091062411017305882448099297667530469758727");
+    // cout << "p = " << p << endl;
+    // cout << "q = " << q << endl;
     n = p * q;
     g = n + 1;
     phi = (p - 1) * (q - 1);
@@ -101,27 +127,6 @@ ZZ stringToNumber(string str)
     {
         number *= 128;
         number += conv<ZZ>(str[i]);
-    }
-
-    return number;
-}
-
-// 解决十进制的string和数字的转换
-ZZ stringToNumber1(string str)
-{
-    ZZ number = conv<ZZ>(str[0] - '0');
-    // cout << str[0] << endl;
-    // cout << number << endl;
-    long len = str.length();
-    for (long i = 1; i < len; i++)
-    {
-        // if(i < 10)
-        // {
-        //     cout << number << endl;
-        // }
-
-        number *= 10;
-        number += conv<ZZ>(str[i] - '0');
     }
 
     return number;
@@ -234,13 +239,16 @@ int decryptFile(const string &sourceFilePath, const string &targetFilePath, cons
 
     for (ZZ decryAsciiValue : decryAsciiSequence)
     {
-        cout << decryAsciiValue << endl;
+        // cout << decryAsciiValue << endl;
         // 先将ZZ（ASCII码）转换为int类型，再将int转换为char类型，conv<>函数实现ZZ和其他类型的转换
         decryCipherText1 += static_cast<char>(conv<int>(decryAsciiValue));
     }
 
-    cout << "解密后的字符串为：" << endl;
-    cout << decryCipherText1 << endl;
+    // cout << "解密后的字符串为：" << endl;
+    // cout << decryCipherText1 << endl;
+
+    // targetFile << decryCipherText1 << endl;
+    targetFile << decryCipherText1;
 
     printf("解密的时间为：%.2fms\n", (double)(1000.0 * (dEnd - dStart) / CLOCKS_PER_SEC));
 
@@ -356,30 +364,36 @@ int main(int argc, char *argv[])
     }
     else
     {
-        // int ret = decryptFile(sourceFilePath, targetFilePath, n, lambda, lambdaInverse);
+        int ret = decryptFile(sourceFilePath, targetFilePath, n, lambda, lambdaInverse);
 
-        // if (ret)
-        // {
-        //     return 1;
-        // }
+        if (ret)
+        {
+            return 1;
+        }
 
-        string p1;
-        ZZ p2;
-        cout << "请输入加密数据：" << endl;
-        getline(cin, p1, '\n');
-        p2 = encrypt(stringToNumber1(p1), n, g, r);
-        cout << p2 << endl;
+        // 测试加解密 -------------- start
+        // string p1;
+        // ZZ p1;
+        // ZZ p2;
+        // cout << "请输入加密数据：" << endl;
+        // // getline(cin, p1, '\n');
+        // // p2 = encrypt(stringToNumber1(p1), n, g, r);
+        // cin >> p1;
+        // p2 = encrypt(p1, n, g, r);
+        // cout << p2 << endl;
 
 
-        cout << "请输入解密数据：" << endl;
-        ZZ mid1, mid2;
-        cout << "1" << endl;
-        cin >> mid1;
-        cout << "2" << endl;
-        mid2 = decrypt(mid1, n, lambda, lambdaInverse);
-        cout << "3" << endl;
-        cout << mid2 << endl;
-        cout << "4" << endl;
+        // cout << "请输入解密数据：" << endl;
+        // ZZ mid1, mid2;
+        // cout << "1" << endl;
+        // cin >> mid1;
+        // cout << "2" << endl;
+        // mid2 = decrypt(mid1, n, lambda, lambdaInverse);
+        // cout << "3" << endl;
+        // cout << mid2 << endl;
+        // cout << "4" << endl;
+
+        // 测试加解密 -------------- end
     }
 
     // // 传输文件测试加解密 ------------------ start
